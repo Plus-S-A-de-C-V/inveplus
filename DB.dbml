@@ -1,0 +1,38 @@
+Project Database{
+ Table Usuario.Usuarios {
+  ID int [pk, unique, ref: > Usuario.InformacionPersonal.ID, ref: > Usuario.DocumentosPersonales.ID, ref: > Usuario.InformacionMedica.ID] 
+  Nombre string
+  Apellidos string
+  Foto photo [note: "Foto del usuario"]
+  Password string [note: "Password Hash"]
+}
+
+Table Usuario.InformacionPersonal {
+  ID int [pk, unique]
+  FechaDeNacimiento timestamp
+  CURP string
+  RFC string
+  NSS string [note: "Numero de Seguro Social"]
+  ClabeDeLector string
+  Direccion string
+  NumeroDeContacto string [note: "En caso de emergencia +1"]
+}
+
+Table Usuario.InformacionMedica{
+  ID int [pk, unique]
+  //Alergias string
+  ClinicaAsignada string
+  //EnfermedadesDetectadas string
+  TipoDeSangre string
+}
+
+Table Usuario.DocumentosPersonales {
+  ID int [pk, unique]
+  INE pdf
+  ConstanciaDeSituacionFiscal pdf
+  AsignacionDeNSS pdf
+  ComprobanteDeDomicilio pdf
+  CURP pdf
+
+}
+}
