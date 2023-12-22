@@ -29,6 +29,7 @@ import {
 } from "@/components/icons";
 
 import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
+import { useSession, signIn, signOut } from "next-auth/react";
 
 export const Navbar = () => {
   const searchInput = (
