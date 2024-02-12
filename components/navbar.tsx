@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Navbar as NextUINavbar,
   NavbarContent,
@@ -19,6 +21,8 @@ import { siteConfig } from "@/config/site";
 import NextLink from "next/link";
 import clsx from "clsx";
 
+import { Router } from "next/router";
+
 import { ThemeSwitch } from "@/components/theme-switch";
 import {
   TwitterIcon,
@@ -32,6 +36,11 @@ import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
 import { useSession, signIn, signOut } from "next-auth/react";
 
 export const Navbar = () => {
+  const { data: session, status } = useSession();
+  if (status !== "authenticated") {
+    // TODO: Redirect to login
+  }
+
   const searchInput = (
     <Input
       aria-label="Search"
@@ -59,7 +68,7 @@ export const Navbar = () => {
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-1" href="/">
             <Image src={siteConfig.logo} alt="Logo" width={62} />
-            <p className="font-bold text-inherit">Plus</p>
+            <p className="font-bold text-inherit">Storage Plus</p>
           </NextLink>
         </NavbarBrand>
         <ul className="hidden lg:flex gap-4 justify-start ml-2">
@@ -99,6 +108,7 @@ export const Navbar = () => {
               <ArrowRightStartOnRectangleIcon className="text-danger h-6 w-6 " />
             }
             variant="flat"
+            onClick={() => signOut()}
           >
             <p className="text-danger">Cerrar Sesión</p>
           </Button>
@@ -109,6 +119,26 @@ export const Navbar = () => {
         <ThemeSwitch />
         <NavbarMenuToggle />
       </NavbarContent>
+
+      <NavbarMenu>
+        {searchInput}
+        <div className="mx-4 mt-2 flex flex-col gap-2">
+          {siteConfig.navItems.map((item, index) => (
+            <NavbarMenuItem key={`${item}-${index}`}>
+              <NextLink
+                className={clsx(
+                  linkStyles({ color: "foreground" }),
+                  "data-[active=true]:text-primary data-[active=true]:font-medium"
+                )}
+                color="foreground"
+                href={item.href}
+              >
+                {item.label}
+              </NextLink>
+            </NavbarMenuItem>
+          ))}
+        </div>
+      </NavbarMenu>
     </NextUINavbar>
   );
 };

@@ -6,10 +6,6 @@ export const siteConfig = {
   description: "Sistema de control interno de Plus.",
   navItems: [
     {
-      label: "Inicio",
-      href: "/",
-    },
-    {
       label: "Horario",
       href: "/horario",
     },

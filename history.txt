@@ -1,0 +1,25 @@
+#V2
+INFO FOR SCOPE plus
+SELECT * FROM Usuarios
+DEFINE FIELD Id ON TABLE Usuarios TYPE string;
+SELECT * FROM Usuarios
+CREATE Usuarios:`PER-00000000` CONTENT {    Id: "PER-00000000",    Nombre: "Pepe",    Apellidos: "Perez Gonzalez",    Foto: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"};
+REMOVE TABLE Usuarios
+DEFINE TABLE Usuarios schemafull;
+DEFINE FIELD Nombre ON TABLE Usuarios TYPE string;\n
+DEFINE FIELD Apellidos ON TABLE Usuarios TYPE string;\n
+DEFINE FIELD Foto ON TABLE Usuarios TYPE string; -- The Foto is a URL\n
+DEFINE FIELD Id ON TABLE Usuarios TYPE string;\n
+CREATE Usuarios:`PER-00000000` CONTENT {\n    Id: "PER-00000000",\n    Nombre: "Pepe",\n    Apellidos: "Perez Gonzalez",\n    Foto: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"\n};
+SELECT * FROM Usuarios
+INFO FOR TABLE Usuarios
+REMOVE TABLE Usuarios
+DEFINE TABLE Usuarios schemafull;
+DEFINE FIELD Nombre ON TABLE Usuarios TYPE string;\n
+DEFINE FIELD Apellidos ON TABLE Usuarios TYPE string;\n
+DEFINE FIELD Foto ON TABLE Usuarios TYPE option<string>; -- The Foto is a URL\n
+DEFINE FIELD Id ON TABLE Usuarios TYPE string;\n
+CREATE Usuarios:`PER-00000000` CONTENT {\n    Id: "PER-00000000",\n    Nombre: "Pepe",\n    Apellidos: "Perez Gonzalez",\n    -- Foto: ""\n};
+INFO FOR TABLE Usuarios
+SELECT * FROM Usuarios
+SELECT Foto FROM Usuarios
