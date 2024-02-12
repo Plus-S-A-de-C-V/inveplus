@@ -2,7 +2,10 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { Usuario } from "@/lib/definitions";
 
-export const authOptions = {
+export const {
+  handlers: {GET, POST},
+  auth,
+} = NextAuth({
   providers: [
     CredentialsProvider({
       // The name to display on the sign in form (e.g. "Sign in with...")
@@ -66,6 +69,4 @@ export const authOptions = {
       return token;
     },
   },
-};
-const handler = NextAuth(authOptions);
-export { handler as GET, handler as POST };
+})

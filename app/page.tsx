@@ -1,4 +1,4 @@
-"use client";
+// "use client";
 
 import { Link } from "@nextui-org/link";
 import { Snippet } from "@nextui-org/snippet";
@@ -12,24 +12,10 @@ import { Usuario } from "@/lib/definitions";
 
 import { Spinner } from "@nextui-org/react";
 
-export default function Home() {
-  const { data: session, status } = useSession({
-    required: true,
-    onUnauthenticated() {
-      // TODO: Redirect to login
-    },
-  });
+import { auth } from "../auth";
 
-  if (status === "loading") {
-    // Show a spinner in the middle
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <Spinner color="primary" label="Cargando..." labelColor="primary" />
-      </div>
-    );
-  }
-
-  const user = session?.user as Usuario;
+export default async function Home() {
+  const { user } = await auth();
 
   return (
     <div>
