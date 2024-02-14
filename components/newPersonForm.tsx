@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Card,
   CardFooter,
@@ -17,7 +19,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-import React, { useRef } from "react";
+import React, { useEffect } from "react";
 import {
   IdentificationIcon,
   ReceiptPercentIcon,
@@ -36,8 +38,9 @@ const DefaultUser = "https://www.gravatar.com/avatar/?d=mp&s=256";
 import { z } from "zod";
 const bcrypt = require("bcryptjs");
 
+import {API} from "@/lib/api_endpoints";
+
 export default function NewPersonForm() {
-  const inputRef = useRef<HTMLInputElement>(null);
   const [nombre, setNombre] = React.useState("");
   const [nombreIsValid, setNombreIsValid] = React.useState(true);
   const [apellidos, setApellidos] = React.useState("");
@@ -262,7 +265,7 @@ export default function NewPersonForm() {
       if (value === "" || value.length === 0) {
         setInvalid(false);
         isValid = false;
-        inputRef.current?.focus();
+        // inputRef.current?.focus();
       } else {
         setInvalid(true);
       }
@@ -334,7 +337,7 @@ export default function NewPersonForm() {
     }
 
     const fileToUplaod = [
-      fetch("/api/upload", {
+      fetch(API.UPLOAD_FILE, {
         method: "POST",
         headers: {
           "Content-Type": profilePic?.type || "document/pdf",
@@ -342,7 +345,7 @@ export default function NewPersonForm() {
         body: profilePic,
       }).then((res) => res.json()),
 
-      fetch("/api/upload", {
+      fetch(API.UPLOAD_FILE, {
         method: "POST",
         headers: {
           "Content-Type": fileINE?.type || "document/pdf",
@@ -350,7 +353,7 @@ export default function NewPersonForm() {
         body: fileINE,
       }).then((res) => res.json()),
 
-      fetch("/api/upload", {
+      fetch(API.UPLOAD_FILE, {
         method: "POST",
         headers: {
           "Content-Type": fileConstancia?.type || "document/pdf",
@@ -358,7 +361,7 @@ export default function NewPersonForm() {
         body: fileConstancia,
       }).then((res) => res.json()),
 
-      fetch("/api/upload", {
+      fetch(API.UPLOAD_FILE, {
         method: "POST",
         headers: {
           "Content-Type": fileAsignacion?.type || "document/pdf",
@@ -366,7 +369,7 @@ export default function NewPersonForm() {
         body: fileAsignacion,
       }).then((res) => res.json()),
 
-      fetch("/api/upload", {
+      fetch(API.UPLOAD_FILE, {
         method: "POST",
         headers: {
           "Content-Type": fileCURP?.type || "document/pdf",
@@ -426,7 +429,7 @@ export default function NewPersonForm() {
 
       console.log("Data2Send: ", nuevaPersona);
 
-      await fetch("/api/nuevaPersona", {
+      await fetch(API.CREATE_USER, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -461,8 +464,6 @@ export default function NewPersonForm() {
     // The first section is about basic user information
     // where it's the user photo, first and last name
     <div className="w-full flex flex-col">
-      <Modal isOpen={isUploading}></Modal>
-
       <div className="w-full">
         <div className="w-full flex flex-col gap-4">
           <p className="text-3xl mr-auto my-3 font-bold">Información Basica</p>
@@ -476,7 +477,6 @@ export default function NewPersonForm() {
                     className="hidden"
                     onChange={handleFileChange}
                     accept="image/*"
-                    ref={inputRef}
                   />
                   <Image
                     alt="Foto de perfil do usuário"
@@ -514,7 +514,6 @@ export default function NewPersonForm() {
                 onValueChange={setNombre}
                 isInvalid={!nombreIsValid}
                 id="nombre"
-                ref={inputRef}
               />
               <Spacer x={3} />
               <Input
@@ -527,7 +526,6 @@ export default function NewPersonForm() {
                 onValueChange={setApellidos}
                 isInvalid={!apellidosIsValid}
                 id="apellidos"
-                ref={inputRef}
               />
             </div>
             <Card className="w-full my-2 bg-default-100 p-2 " shadow="none">
@@ -559,7 +557,6 @@ export default function NewPersonForm() {
                 onValueChange={setPassword}
                 isInvalid={!passwordIsValid}
                 id="password"
-                ref={inputRef}
               />
             )}
           </div>
@@ -582,7 +579,6 @@ export default function NewPersonForm() {
             onValueChange={setFecha}
             value={fechaDeNacimiento}
             color={fechaDeNacimientoIsValid ? "default" : "danger"}
-            ref={inputRef}
           />
 
           <Input
@@ -599,7 +595,6 @@ export default function NewPersonForm() {
             onValueChange={setCurp}
             isInvalid={!curpIsValid}
             id="curp"
-            ref={inputRef}
           />
           <Input
             isClearable
@@ -615,7 +610,6 @@ export default function NewPersonForm() {
             onValueChange={setRfc}
             isInvalid={!rfcIsValid}
             id="rfc"
-            ref={inputRef}
           />
           <Input
             isClearable
@@ -629,7 +623,6 @@ export default function NewPersonForm() {
             onValueChange={setNSS}
             isInvalid={!nssIsInvalid}
             id="nss"
-            ref={inputRef}
           />
           <Input
             isClearable
@@ -645,7 +638,6 @@ export default function NewPersonForm() {
             onValueChange={setClaveLector}
             isInvalid={!claveLectorIsValid}
             id="claveLector"
-            ref={inputRef}
           />
           <Input
             isClearable
@@ -659,7 +651,6 @@ export default function NewPersonForm() {
             onValueChange={setDireccion}
             isInvalid={!direccionIsValid}
             id="direccion"
-            ref={inputRef}
           />
 
           <Input
@@ -676,7 +667,6 @@ export default function NewPersonForm() {
             onValueChange={setNumeroTelefonico}
             isInvalid={!numeroTelefonicoIsValid}
             id="numeroTelefonico"
-            ref={inputRef}
           />
           <Input
             isClearable
@@ -690,7 +680,6 @@ export default function NewPersonForm() {
             onValueChange={setEmail}
             isInvalid={!emailIsValid}
             id="email"
-            ref={inputRef}
           />
         </div>
 
@@ -760,7 +749,6 @@ export default function NewPersonForm() {
             onValueChange={setClinica}
             isInvalid={!clinicaIsValid}
             id="clinica"
-            ref={inputRef}
           />
           {/* <Input
             isClearable
