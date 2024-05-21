@@ -1,5 +1,3 @@
-"use client";
-
 import {
   Card,
   CardFooter,
@@ -19,28 +17,21 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-import React, { useEffect } from "react";
-import {
-  IdentificationIcon,
-  ReceiptPercentIcon,
-  HeartIcon,
-  FingerPrintIcon,
-  HomeIcon,
-  DevicePhoneMobileIcon,
-  EnvelopeIcon,
-  EyeDropperIcon,
-  CheckIcon,
-} from "@heroicons/react/24/outline";
+import React, { useRef } from "react";
+
+import { MagnifyingGlassIcon, FileIcon, HeartIcon, PersonIcon, HomeIcon, MobileIcon, EnvelopeOpenIcon, DrawingPinFilledIcon, CheckIcon } from '@radix-ui/react-icons'
+
 
 import FileInput from "@/components/fileUpload";
+
+// import {Calendar} from "@nextui-org/react";
 
 const DefaultUser = "https://www.gravatar.com/avatar/?d=mp&s=256";
 import { z } from "zod";
 const bcrypt = require("bcryptjs");
 
-import {API} from "@/lib/api_endpoints";
-
 export default function NewPersonForm() {
+  const inputRef = useRef<HTMLInputElement>(null);
   const [nombre, setNombre] = React.useState("");
   const [nombreIsValid, setNombreIsValid] = React.useState(true);
   const [apellidos, setApellidos] = React.useState("");
@@ -210,73 +201,73 @@ export default function NewPersonForm() {
   const handleSubmit = async () => {
     console.log("Submitting");
 
-    const dataToCheck = [
-      { value: nombre, setInvalid: setNombreIsValid, fieldName: "Nombre" },
-      {
-        value: apellidos,
-        setInvalid: setApellidosIsValid,
-        fieldName: "Apellidos",
-      },
-      {
-        value: isSystemUser ? password : "UsuarioSinContraseña",
-        setInvalid: setPasswordIsValid,
-        fieldName: "Password",
-      },
-      {
-        value: fechaDeNacimiento,
-        setInvalid: setFechaIsValid,
-        fieldName: "Fecha de nacimiento",
-      },
-      { value: curp, setInvalid: setCurpIsValid, fieldName: "CURP" },
-      // { value: rfc, setInvalid: setRfcIsValid },
-      // { value: nss, setInvalid: setNSSIsValid },
-      {
-        value: claveLector,
-        setInvalid: setClaveLectorIsValid,
-        fieldName: "Clave lector",
-      },
-      {
-        value: direccion,
-        setInvalid: setDireccionIsValid,
-        fieldName: "Dirección",
-      },
-      {
-        value: numeroTelefonico,
-        setInvalid: setNumeroTelefonicoIsValid,
-        fieldName: "Numero telefonico",
-      },
-      {
-        value: email,
-        setInvalid: setEmailIsValid,
-        fieldName: "Correo electronico",
-      },
-      // { value: clinica, setInvalid: setClinicaIsValid },
-      {
-        value: tipoSangre,
-        setInvalid: setSangreIsValid,
-        fieldName: "Tipo de sangre",
-      },
-    ];
+    // const dataToCheck = [
+    //   { value: nombre, setInvalid: setNombreIsValid, fieldName: "Nombre" },
+    //   {
+    //     value: apellidos,
+    //     setInvalid: setApellidosIsValid,
+    //     fieldName: "Apellidos",
+    //   },
+    //   {
+    //     value: isSystemUser ? password : "UsuarioSinContraseña",
+    //     setInvalid: setPasswordIsValid,
+    //     fieldName: "Password",
+    //   },
+    //   {
+    //     value: fechaDeNacimiento,
+    //     setInvalid: setFechaIsValid,
+    //     fieldName: "Fecha de nacimiento",
+    //   },
+    //   { value: curp, setInvalid: setCurpIsValid, fieldName: "CURP" },
+    //   // { value: rfc, setInvalid: setRfcIsValid },
+    //   // { value: nss, setInvalid: setNSSIsValid },
+    //   {
+    //     value: claveLector,
+    //     setInvalid: setClaveLectorIsValid,
+    //     fieldName: "Clave lector",
+    //   },
+    //   {
+    //     value: direccion,
+    //     setInvalid: setDireccionIsValid,
+    //     fieldName: "Dirección",
+    //   },
+    //   {
+    //     value: numeroTelefonico,
+    //     setInvalid: setNumeroTelefonicoIsValid,
+    //     fieldName: "Numero telefonico",
+    //   },
+    //   {
+    //     value: email,
+    //     setInvalid: setEmailIsValid,
+    //     fieldName: "Correo electronico",
+    //   },
+    //   // { value: clinica, setInvalid: setClinicaIsValid },
+    //   {
+    //     value: tipoSangre,
+    //     setInvalid: setSangreIsValid,
+    //     fieldName: "Tipo de sangre",
+    //   },
+    // ];
 
-    let isValid = true;
+    // let isValid = true;
 
-    dataToCheck.forEach(({ value, setInvalid }) => {
-      console.log("Checking ", value);
-      if (value === "" || value.length === 0) {
-        setInvalid(false);
-        isValid = false;
-        // inputRef.current?.focus();
-      } else {
-        setInvalid(true);
-      }
-    });
+    // dataToCheck.forEach(({ value, setInvalid }) => {
+    //   console.log("Checking ", value);
+    //   if (value === "" || value.length === 0) {
+    //     setInvalid(false);
+    //     isValid = false;
+    //     inputRef.current?.focus();
+    //   } else {
+    //     setInvalid(true);
+    //   }
+    // });
 
-    if (fileINE === null) {
-      setFileINEIsValid(false);
-      isValid = false;
-    } else {
-      setFileINEIsValid(true);
-    }
+    // if (fileINE === null) {
+    //   setFileINEIsValid(false);
+    //   isValid = false;
+    // } else {
+    //   setFileINEIsValid(true);
+    // }
 
     // if (fileConstancia === null) {
     //   setFileConstanciaIsValid(false);
@@ -292,161 +283,161 @@ export default function NewPersonForm() {
     //   setFileAsignacionIsValid(true);
     // }
 
-    if (fileCURP === null) {
-      setFileCURPIsValid(false);
-      isValid = false;
-    } else {
-      setFileCURPIsValid(true);
-    }
+    // if (fileCURP === null) {
+    //   setFileCURPIsValid(false);
+    //   isValid = false;
+    // } else {
+    //   setFileCURPIsValid(true);
+    // }
 
-    // Validate Email with zod
-    if (z.string().email().safeParse(email).success === false) {
-      setEmailIsValid(false);
-      isValid = false;
-    }
+    // // Validate Email with zod
+    // if (z.string().email().safeParse(email).success === false) {
+    //   setEmailIsValid(false);
+    //   isValid = false;
+    // }
 
-    // If CURP is not empty, validate it, if not, continue
-    if (curp === "") {
-      setCurpIsValid(true);
-    } else if (!validateCURP(curp)) {
-      setCurpIsValid(false);
-      isValid = false;
-    }
+    // // If CURP is not empty, validate it, if not, continue
+    // if (curp === "") {
+    //   setCurpIsValid(true);
+    // } else if (!validateCURP(curp)) {
+    //   setCurpIsValid(false);
+    //   isValid = false;
+    // }
 
-    if (rfc === "") {
-      setRfcIsValid(true);
-    } else if (!validarRFC(rfc)) {
-      setRfcIsValid(false);
-      isValid = false;
-    }
+    // if (rfc === "") {
+    //   setRfcIsValid(true);
+    // } else if (!validarRFC(rfc)) {
+    //   setRfcIsValid(false);
+    //   isValid = false;
+    // }
 
-    if (nss === "") {
-      setNSSIsValid(true);
-    } else if (!validarNSS(nss)) {
-      setNSSIsValid(false);
-      isValid = false;
-    }
+    // if (nss === "") {
+    //   setNSSIsValid(true);
+    // } else if (!validarNSS(nss)) {
+    //   setNSSIsValid(false);
+    //   isValid = false;
+    // }
 
-    if (!validatePhone(numeroTelefonico)) {
-      setNumeroTelefonicoIsValid(false);
-      isValid = false;
-    }
+    // if (!validatePhone(numeroTelefonico)) {
+    //   setNumeroTelefonicoIsValid(false);
+    //   isValid = false;
+    // }
 
-    if (!isValid) {
-      return;
-    }
+    // if (!isValid) {
+    //   return;
+    // }
 
-    const fileToUplaod = [
-      fetch(API.UPLOAD_FILE, {
-        method: "POST",
-        headers: {
-          "Content-Type": profilePic?.type || "document/pdf",
-        },
-        body: profilePic,
-      }).then((res) => res.json()),
+    // const fileToUplaod = [
+    //   fetch("/api/upload", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": profilePic?.type || "document/pdf",
+    //     },
+    //     body: profilePic,
+    //   }).then((res) => res.json()),
 
-      fetch(API.UPLOAD_FILE, {
-        method: "POST",
-        headers: {
-          "Content-Type": fileINE?.type || "document/pdf",
-        },
-        body: fileINE,
-      }).then((res) => res.json()),
+    //   fetch("/api/upload", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": fileINE?.type || "document/pdf",
+    //     },
+    //     body: fileINE,
+    //   }).then((res) => res.json()),
 
-      fetch(API.UPLOAD_FILE, {
-        method: "POST",
-        headers: {
-          "Content-Type": fileConstancia?.type || "document/pdf",
-        },
-        body: fileConstancia,
-      }).then((res) => res.json()),
+    //   fetch("/api/upload", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": fileConstancia?.type || "document/pdf",
+    //     },
+    //     body: fileConstancia,
+    //   }).then((res) => res.json()),
 
-      fetch(API.UPLOAD_FILE, {
-        method: "POST",
-        headers: {
-          "Content-Type": fileAsignacion?.type || "document/pdf",
-        },
-        body: fileAsignacion,
-      }).then((res) => res.json()),
+    //   fetch("/api/upload", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": fileAsignacion?.type || "document/pdf",
+    //     },
+    //     body: fileAsignacion,
+    //   }).then((res) => res.json()),
 
-      fetch(API.UPLOAD_FILE, {
-        method: "POST",
-        headers: {
-          "Content-Type": fileCURP?.type || "document/pdf",
-        },
-        body: fileCURP,
-      }).then((res) => res.json()),
-    ];
+    //   fetch("/api/upload", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": fileCURP?.type || "document/pdf",
+    //     },
+    //     body: fileCURP,
+    //   }).then((res) => res.json()),
+    // ];
 
-    // TODO: Handle errors
-    const uploadedFiles = await Promise.all(fileToUplaod);
+    // // TODO: Handle errors
+    // const uploadedFiles = await Promise.all(fileToUplaod);
 
-    const [
-      _profilePicUrl,
-      _fileINEUrl,
-      _fileConstanciaUrl,
-      _fileAsignacionUrl,
-      _fileCURPUrl,
-    ] = uploadedFiles;
+    // const [
+    //   _profilePicUrl,
+    //   _fileINEUrl,
+    //   _fileConstanciaUrl,
+    //   _fileAsignacionUrl,
+    //   _fileCURPUrl,
+    // ] = uploadedFiles;
 
-    const profilePicUrl = _profilePicUrl.fileName;
-    const fileINEUrl = _fileINEUrl.fileName;
-    const fileConstanciaUrl = _fileConstanciaUrl?.fileName || null;
-    const fileAsignacionUrl = _fileAsignacionUrl?.fileName || null;
-    const fileCURPUrl = _fileCURPUrl.fileName;
+    // const profilePicUrl = _profilePicUrl.fileName;
+    // const fileINEUrl = _fileINEUrl.fileName;
+    // const fileConstanciaUrl = _fileConstanciaUrl?.fileName || null;
+    // const fileAsignacionUrl = _fileAsignacionUrl?.fileName || null;
+    // const fileCURPUrl = _fileCURPUrl.fileName;
 
     // Hash password and send it
-    console.log("Hashing password... and sending it...");
-    bcrypt.hash(password, 20, async (err: any, hash: any) => {
-      if (err) {
-        // TODO: Handle error
-        console.error(err);
-        return;
-      }
+    // console.log("Hashing password... and sending it...");
+    // bcrypt.hash(password, 20, async (err: any, hash: any) => {
+    //   if (err) {
+    //     // TODO: Handle error
+    //     console.error(err);
+    //     return;
+    //   }
 
-      const hashedPassword = hash;
-      const nuevaPersona = {
-        profilePicUrl,
-        nombre,
-        apellidos,
-        hashedPassword,
-        isSystemUser,
-        fechaDeNacimiento,
-        curp,
-        rfc,
-        nss,
-        claveLector,
-        direccion,
-        numeroTelefonico,
-        email,
-        clinica,
-        tipoSangre,
-        fileINEUrl,
-        fileConstanciaUrl,
-        fileAsignacionUrl,
-        fileCURPUrl,
-      };
+    //   const hashedPassword = hash;
+    //   const nuevaPersona = {
+    //     profilePicUrl,
+    //     nombre,
+    //     apellidos,
+    //     hashedPassword,
+    //     isSystemUser,
+    //     fechaDeNacimiento,
+    //     curp,
+    //     rfc,
+    //     nss,
+    //     claveLector,
+    //     direccion,
+    //     numeroTelefonico,
+    //     email,
+    //     clinica,
+    //     tipoSangre,
+    //     fileINEUrl,
+    //     fileConstanciaUrl,
+    //     fileAsignacionUrl,
+    //     fileCURPUrl,
+    //   };
 
-      console.log("Data2Send: ", nuevaPersona);
+    //   console.log("Data2Send: ", nuevaPersona);
 
-      await fetch(API.CREATE_USER, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nuevaPersona,
-        }),
-      })
-        .then((res) => {
-          if (res.status === 200) {
-            console.log("Success", res);
-          }
-        })
-        .catch((err) => {
-          console.log("Error", err);
-        });
-    });
+    //   await fetch("/api/nuevaPersona", {
+    //     method: "POST",
+    //     headers: {
+    //       "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //       nuevaPersona,
+    //     }),
+    //   })
+    //     .then((res) => {
+    //       if (res.status === 200) {
+    //         console.log("Success", res);
+    //       }
+    //     })
+    //     .catch((err) => {
+    //       console.log("Error", err);
+    //     });
+    // });
   };
 
   const tiposDeSangre = [
@@ -464,264 +455,283 @@ export default function NewPersonForm() {
     // The first section is about basic user information
     // where it's the user photo, first and last name
     <div className="w-full flex flex-col">
-      <div className="w-full">
-        <div className="w-full flex flex-col gap-4">
-          <p className="text-3xl mr-auto my-3 font-bold">Información Basica</p>
-          <div className="w-full flex flex-col">
-            <div className="w-full py-4">
-              <div className="flex items-center justify-center">
-                <Card isFooterBlurred radius="lg" className="border-none">
-                  <input
-                    id="profilePic"
-                    type="file"
-                    className="hidden"
-                    onChange={handleFileChange}
-                    accept="image/*"
-                  />
-                  <Image
-                    alt="Foto de perfil do usuário"
-                    isBlurred
-                    className="object-cover"
-                    height={256}
-                    src={
-                      profilePic ? URL.createObjectURL(profilePic) : DefaultUser
-                    }
-                    fallbackSrc={DefaultUser}
-                    width={256}
-                  />
-                  <CardFooter className="justify-center before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                    <Button
-                      className="text-primary-900 text-lg"
-                      variant="flat"
-                      color="default"
-                      radius="lg"
-                      size="sm"
-                    >
-                      <label htmlFor="profilePic">Editar Fotografia</label>
-                    </Button>
-                  </CardFooter>
-                </Card>
-              </div>
-            </div>
-            <div className="flex flex-row w-full">
-              <Input
-                isClearable
-                isRequired
-                type="text"
-                label="Nombre"
-                placeholder="Escribe el nombre de la nueva persona..."
-                value={nombre}
-                onValueChange={setNombre}
-                isInvalid={!nombreIsValid}
-                id="nombre"
-              />
-              <Spacer x={3} />
-              <Input
-                isClearable
-                isRequired
-                type="text"
-                label="Apellidos"
-                placeholder="Escribe los apellidos de la nueva persona..."
-                value={apellidos}
-                onValueChange={setApellidos}
-                isInvalid={!apellidosIsValid}
-                id="apellidos"
-              />
-            </div>
-            <Card className="w-full my-2 bg-default-100 p-2 " shadow="none">
-              <div className="flex flex-row w-full">
-                <div className="flex flex-col gap-1 w-11/12">
-                  <p className="text-medium">
-                    ¿Habilitar como usuario del sistema?
-                  </p>
-                  <p className="text-tiny text-default-400">
-                    Al habilitarlo, el usuario podra acceder a este sistema, una
-                    contraseña de inicio de sesión es necesaria.
-                  </p>
+      {/* <Modal isOpen={isUploading}></Modal> */}
+      <Modal isOpen={isOpen}></Modal>
+
+      <form
+        action={handleSubmit}
+      >
+
+        <div className="w-full">
+          <div className="w-full flex flex-col gap-4">
+            <p className="text-3xl mr-auto my-3 font-bold">Información Basica</p>
+            <div className="w-full flex flex-col">
+              <div className="w-full py-4">
+                <div className="flex items-center justify-center">
+                  <Card isFooterBlurred radius="lg" className="border-none">
+                    <input
+                      id="profilePic"
+                      type="file"
+                      className="hidden"
+                      onChange={handleFileChange}
+                      accept="image/*"
+                      ref={inputRef}
+                    />
+                    <Image
+                      alt="Foto de perfil do usuário"
+                      isBlurred
+                      className="object-cover"
+                      height={256}
+                      src={
+                        profilePic ? URL.createObjectURL(profilePic) : DefaultUser
+                      }
+                      fallbackSrc={DefaultUser}
+                      width={256}
+                    />
+                    <CardFooter className="justify-center before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
+                      <Button
+                        className="text-primary-900 text-lg"
+                        variant="flat"
+                        color="default"
+                        radius="lg"
+                        size="sm"
+                      >
+                        <label htmlFor="profilePic">Editar Fotografia</label>
+                      </Button>
+                    </CardFooter>
+                  </Card>
                 </div>
-                <Switch
-                  isSelected={isSystemUser}
-                  onValueChange={setSystemUser}
-                  aria-label="Usuario del Sistema"
+              </div>
+              <div className="flex flex-row w-full">
+                <Input
+                  isClearable
+                  isRequired
+                  type="text"
+                  label="Nombre"
+                  placeholder="Escribe el nombre de la nueva persona..."
+                  value={nombre}
+                  onValueChange={setNombre}
+                  isInvalid={!nombreIsValid}
+                  id="nombre"
+                  ref={inputRef}
+                />
+                <Spacer x={3} />
+                <Input
+                  isClearable
+                  isRequired
+                  type="text"
+                  label="Apellidos"
+                  placeholder="Escribe los apellidos de la nueva persona..."
+                  value={apellidos}
+                  onValueChange={setApellidos}
+                  isInvalid={!apellidosIsValid}
+                  id="apellidos"
+                  ref={inputRef}
                 />
               </div>
-            </Card>
-            {isSystemUser && (
-              <Input
-                isClearable
-                isRequired
-                type="password"
-                label="Contraseña"
-                placeholder="Escribe la contraseña para la nueva persona..."
-                value={password}
-                onValueChange={setPassword}
-                isInvalid={!passwordIsValid}
-                id="password"
-              />
-            )}
+              <Card className="w-full my-2 bg-default-100 p-2 " shadow="none">
+                <div className="flex flex-row w-full">
+                  <div className="flex flex-col gap-1 w-11/12">
+                    <p className="text-medium">
+                      ¿Habilitar como usuario del sistema?
+                    </p>
+                    <p className="text-tiny text-default-400">
+                      Al habilitarlo, el usuario podra acceder a este sistema, una
+                      contraseña de inicio de sesión es necesaria.
+                    </p>
+                  </div>
+                  <Switch
+                    isSelected={isSystemUser}
+                    onValueChange={setSystemUser}
+                    aria-label="Usuario del Sistema"
+                  />
+                </div>
+              </Card>
+              {isSystemUser && (
+                <Input
+                  isClearable
+                  isRequired
+                  type="password"
+                  label="Contraseña"
+                  placeholder="Escribe la contraseña para la nueva persona..."
+                  value={password}
+                  onValueChange={setPassword}
+                  isInvalid={!passwordIsValid}
+                  id="password"
+                  ref={inputRef}
+                />
+              )}
+            </div>
           </div>
         </div>
-      </div>
-      <div>
-        <p className="text-3xl mr-auto my-2 font-bold">Información Personal</p>
-        <div className="flex-row flex-wrap grid md:grid-cols-1 lg:grid-cols-2">
-          <Input
-            // isClearable
-            isRequired
-            type="date"
-            label="Fecha de Nacimiento"
-            labelPlacement="outside-left"
-            className="p-2 w-full"
-            // startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
-            id="fechaDeNacimiento"
-            max={new Date().toISOString().split("T")[0]}
-            min={"1900-01-01"}
-            onValueChange={setFecha}
-            value={fechaDeNacimiento}
-            color={fechaDeNacimientoIsValid ? "default" : "danger"}
-          />
+        <div>
+          <p className="text-3xl mr-auto my-2 font-bold">Información Personal</p>
+          <div className="flex-row flex-wrap grid md:grid-cols-1 lg:grid-cols-2">
+            <Input
+              // isClearable
+              isRequired
+              type="date"
+              label="Fecha de Nacimiento"
+              labelPlacement="outside-left"
+              className="p-2 w-full"
+              // startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
+              id="fechaDeNacimiento"
+              max={new Date().toISOString().split("T")[0]}
+              min={"1900-01-01"}
+              onValueChange={setFecha}
+              value={fechaDeNacimiento}
+              color={fechaDeNacimientoIsValid ? "default" : "danger"}
+              ref={inputRef}
+            />
 
-          <Input
-            isClearable
-            isRequired
-            type="text"
-            label="CURP"
-            placeholder="Escribe el CURP de la nueva persona..."
-            className="p-2 w-full"
-            startContent={
-              <IdentificationIcon className="w-5 h-5 text-default-400" />
-            }
-            value={curp}
-            onValueChange={setCurp}
-            isInvalid={!curpIsValid}
-            id="curp"
-          />
-          <Input
-            isClearable
-            // isRequired
-            type="text"
-            label="RFC"
-            placeholder="Escribe el RFC de la nueva persona..."
-            className="p-2 w-full"
-            startContent={
-              <ReceiptPercentIcon className="w-5 h-5 text-default-400" />
-            }
-            value={rfc}
-            onValueChange={setRfc}
-            isInvalid={!rfcIsValid}
-            id="rfc"
-          />
-          <Input
-            isClearable
-            // isRequired
-            type="text"
-            label="NSS"
-            placeholder="Escribe el NSS de la nueva persona..."
-            className="p-2 w-full"
-            startContent={<HeartIcon className="w-5 h-5 text-default-400" />}
-            value={nss}
-            onValueChange={setNSS}
-            isInvalid={!nssIsInvalid}
-            id="nss"
-          />
-          <Input
-            isClearable
-            isRequired
-            type="text"
-            label="Clave de Lector"
-            placeholder="Escribe la Clave de Lector de la nueva persona..."
-            className="p-2 w-full"
-            startContent={
-              <FingerPrintIcon className="w-5 h-5 text-default-400" />
-            }
-            value={claveLector}
-            onValueChange={setClaveLector}
-            isInvalid={!claveLectorIsValid}
-            id="claveLector"
-          />
-          <Input
-            isClearable
-            isRequired
-            type="text"
-            label="Dirección"
-            placeholder="Escribe la dirección de la nueva persona..."
-            className="p-2 w-full"
-            startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
-            value={direccion}
-            onValueChange={setDireccion}
-            isInvalid={!direccionIsValid}
-            id="direccion"
-          />
+            <Input
+              isClearable
+              isRequired
+              type="text"
+              label="CURP"
+              placeholder="Escribe el CURP de la nueva persona..."
+              className="p-2 w-full"
+              startContent={
+                <MagnifyingGlassIcon className="w-5 h-5 text-default-400" />
+              }
+              value={curp}
+              onValueChange={setCurp}
+              isInvalid={!curpIsValid}
+              id="curp"
+              ref={inputRef}
+            />
+            <Input
+              isClearable
+              // isRequired
+              type="text"
+              label="RFC"
+              placeholder="Escribe el RFC de la nueva persona..."
+              className="p-2 w-full"
+              startContent={
+                <FileIcon className="w-5 h-5 text-default-400" />
+              }
+              value={rfc}
+              onValueChange={setRfc}
+              isInvalid={!rfcIsValid}
+              id="rfc"
+              ref={inputRef}
+            />
+            <Input
+              isClearable
+              // isRequired
+              type="text"
+              label="NSS"
+              placeholder="Escribe el NSS de la nueva persona..."
+              className="p-2 w-full"
+              startContent={<HeartIcon className="w-5 h-5 text-default-400" />}
+              value={nss}
+              onValueChange={setNSS}
+              isInvalid={!nssIsInvalid}
+              id="nss"
+              ref={inputRef}
+            />
+            <Input
+              isClearable
+              isRequired
+              type="text"
+              label="Clave de Lector"
+              placeholder="Escribe la Clave de Lector de la nueva persona..."
+              className="p-2 w-full"
+              startContent={
+                <PersonIcon className="w-5 h-5 text-default-400" />
+              }
+              value={claveLector}
+              onValueChange={setClaveLector}
+              isInvalid={!claveLectorIsValid}
+              id="claveLector"
+              ref={inputRef}
+            />
+            <Input
+              isClearable
+              isRequired
+              type="text"
+              label="Dirección"
+              placeholder="Escribe la dirección de la nueva persona..."
+              className="p-2 w-full"
+              startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
+              value={direccion}
+              onValueChange={setDireccion}
+              isInvalid={!direccionIsValid}
+              id="direccion"
+              ref={inputRef}
+            />
 
-          <Input
-            isClearable
-            isRequired
-            type="text"
-            label="Numero de Contacto"
-            placeholder="Escribe el numero de contacto de la nueva persona..."
-            className="p-2 w-full"
-            startContent={
-              <DevicePhoneMobileIcon className="w-5 h-5 text-default-400" />
-            }
-            value={numeroTelefonico}
-            onValueChange={setNumeroTelefonico}
-            isInvalid={!numeroTelefonicoIsValid}
-            id="numeroTelefonico"
-          />
-          <Input
-            isClearable
-            isRequired
-            type="email"
-            label="Correo Electronico"
-            placeholder="Escribe el correo electronico de la nueva persona..."
-            className="p-2 w-full"
-            startContent={<EnvelopeIcon className="w-5 h-5 text-default-400" />}
-            value={email}
-            onValueChange={setEmail}
-            isInvalid={!emailIsValid}
-            id="email"
-          />
-        </div>
+            <Input
+              isClearable
+              isRequired
+              type="text"
+              label="Numero de Contacto"
+              placeholder="Escribe el numero de contacto de la nueva persona..."
+              className="p-2 w-full"
+              startContent={
+                <MobileIcon className="w-5 h-5 text-default-400" />
+              }
+              value={numeroTelefonico}
+              onValueChange={setNumeroTelefonico}
+              isInvalid={!numeroTelefonicoIsValid}
+              id="numeroTelefonico"
+              ref={inputRef}
+            />
+            <Input
+              isClearable
+              isRequired
+              type="email"
+              label="Correo Electronico"
+              placeholder="Escribe el correo electronico de la nueva persona..."
+              className="p-2 w-full"
+              startContent={<EnvelopeOpenIcon className="w-5 h-5 text-default-400" />}
+              value={email}
+              onValueChange={setEmail}
+              isInvalid={!emailIsValid}
+              id="email"
+              ref={inputRef}
+            />
+          </div>
 
-        <div className="flex-row flex-wrap grid md:grid-cols-2 lg:grid.cols-2 gap-3">
-          <FileInput
-            title="Cargar INE"
-            acceptedFileTypesText="PDF Unicamente"
-            acceptedFileTypes={"application/pdf"}
-            onFileChange={(file: any) => {
-              setFileINE(file);
-            }}
-            isValid={fileIneIsValid}
-          />
-          <FileInput
-            title="Cargar Constancia de Situacion Fiscal"
-            acceptedFileTypesText="PDF Unicamente"
-            acceptedFileTypes={"application/pdf"}
-            onFileChange={(file: any) => {
-              setFileConstancia(file);
-            }}
-            isValid={fileConstanciaIsValid}
-          />
-          <FileInput
-            title="Cargar Asignación de Numero de Seguro Social"
-            acceptedFileTypesText="PDF Unicamente"
-            acceptedFileTypes={"application/pdf"}
-            Change={(file: any) => {
-              setFileAsignacion(file);
-            }}
-            isValid={fileAsignacionIsValid}
-          />
-          <FileInput
-            title="Cargar CURP"
-            acceptedFileTypesText="PDF Unicamente"
-            acceptedFileTypes={"application/pdf"}
-            onFileChange={(file: any) => {
-              setFileCURP(file);
-            }}
-            isValid={fileCURPIsValid}
-          />
-        </div>
-        {/* TODO: Add map
+          <div className="flex-row flex-wrap grid md:grid-cols-2 lg:grid.cols-2 gap-3">
+            <FileInput
+              title="Cargar INE"
+              acceptedFileTypesText="PDF Unicamente"
+              acceptedFileTypes={"application/pdf"}
+              onFileChange={(file: any) => {
+                setFileINE(file);
+              }}
+              isValid={fileIneIsValid}
+            />
+            <FileInput
+              title="Cargar Constancia de Situacion Fiscal"
+              acceptedFileTypesText="PDF Unicamente"
+              acceptedFileTypes={"application/pdf"}
+              onFileChange={(file: any) => {
+                setFileConstancia(file);
+              }}
+              isValid={fileConstanciaIsValid}
+            />
+            <FileInput
+              title="Cargar Asignación de Numero de Seguro Social"
+              acceptedFileTypesText="PDF Unicamente"
+              acceptedFileTypes={"application/pdf"}
+              Change={(file: any) => {
+                setFileAsignacion(file);
+              }}
+              isValid={fileAsignacionIsValid}
+            />
+            <FileInput
+              title="Cargar CURP"
+              acceptedFileTypesText="PDF Unicamente"
+              acceptedFileTypes={"application/pdf"}
+              onFileChange={(file: any) => {
+                setFileCURP(file);
+              }}
+              isValid={fileCURPIsValid}
+            />
+          </div>
+          {/* TODO: Add map
           <Map
             initialViewState={{
               latitude: 22.1268734,
@@ -732,25 +742,26 @@ export default function NewPersonForm() {
             // mapStyle="https://api.maptiler.com/maps/streets/style.json?key=get_your_own_key"
             mapStyle="https://api.maptiler.com/maps/streets-v2-pastel/style.json?key=o7xqVEeWnFYaAmW64KKV"
           /> */}
-      </div>
-      <Divider className="my-4" />
-      <div>
-        <p className="text-3xl mr-auto my-2 font-bold">Información Medica</p>
-        <div className="flex-row flex-wrap grid md:grid-cols-1 lg:grid-cols-2">
-          <Input
-            isClearable
-            // isRequired
-            type="text"
-            label="Clinica Asignada"
-            placeholder="Escribe la Clinica Asignada de la nueva persona..."
-            className="p-2 w-full"
-            startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
-            value={clinica}
-            onValueChange={setClinica}
-            isInvalid={!clinicaIsValid}
-            id="clinica"
-          />
-          {/* <Input
+        </div>
+        <Divider className="my-4" />
+        <div>
+          <p className="text-3xl mr-auto my-2 font-bold">Información Medica</p>
+          <div className="flex-row flex-wrap grid md:grid-cols-1 lg:grid-cols-2">
+            <Input
+              isClearable
+              // isRequired
+              type="text"
+              label="Clinica Asignada"
+              placeholder="Escribe la Clinica Asignada de la nueva persona..."
+              className="p-2 w-full"
+              startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
+              value={clinica}
+              onValueChange={setClinica}
+              isInvalid={!clinicaIsValid}
+              id="clinica"
+              ref={inputRef}
+            />
+            {/* <Input
             isClearable
             isRequired
             type="text"
@@ -764,38 +775,41 @@ export default function NewPersonForm() {
             onValueChange={setSangre}
             isInvalid={!sangreIsValid}
           /> */}
-          <Select
-            className="p-2 w-full"
-            label="Tipo de Sangre"
-            placeholder="Selecciona el tipo de sangre..."
-            isRequired
-            startContent={
-              <EyeDropperIcon className="w-5 h-5 text-default-400" />
-            }
-            value={tipoSangre}
-            onChange={(e) => setSangre(e.target.value)}
-            isInvalid={!sangreIsValid}
-            id="sangre"
-          >
-            {tiposDeSangre.map((animal) => (
-              <SelectItem key={animal.value} value={animal.value}>
-                {animal.label}
-              </SelectItem>
-            ))}
-          </Select>
+            <Select
+              className="p-2 w-full"
+              label="Tipo de Sangre"
+              placeholder="Selecciona el tipo de sangre..."
+              isRequired
+              startContent={
+                <DrawingPinFilledIcon className="w-5 h-5 text-default-400" />
+              }
+              value={tipoSangre}
+              onChange={(e) => setSangre(e.target.value)}
+              isInvalid={!sangreIsValid}
+              id="sangre"
+            >
+              {tiposDeSangre.map((animal) => (
+                <SelectItem key={animal.value} value={animal.value}>
+                  {animal.label}
+                </SelectItem>
+              ))}
+            </Select>
+          </div>
         </div>
-      </div>
-      <Divider className="my-4" />
+        <Divider className="my-4" />
 
-      <div className="flex flex-row justify-end">
-        <Button
-          color="primary"
-          startContent={<CheckIcon className="h-6 w-6" />}
-          onClick={handleSubmit}
-        >
-          Crear Usuario
-        </Button>
-      </div>
+        <div className="flex flex-row justify-end">
+          <Button
+            color="primary"
+            startContent={<CheckIcon className="h-6 w-6" />}
+            type="submit"
+          >
+            Crear Usuario
+          </Button>
+        </div>
+
+      </form>
+
     </div>
   );
 }

@@ -1,13 +1,16 @@
-"use server";
-
-import { Link } from "@nextui-org/link";
-import { Snippet } from "@nextui-org/snippet";
-import { Code } from "@nextui-org/code";
-import { button as buttonStyles } from "@nextui-org/theme";
+// "use client";
+import { Link } from "@nextui-org/react";
+import { Snippet } from "@nextui-org/react";
+import { Code } from "@nextui-org/react";
 import { siteConfig } from "@/config/site";
 import { title, subtitle } from "@/components/primitives";
 import { GithubIcon } from "@/components/icons";
 import { Usuario } from "@/lib/definitions";
+
+import { Spinner } from "@nextui-org/react";
+
+import { auth } from "@/auth"
+
 
 export default async function Home() {
   return (

@@ -1,8 +1,6 @@
-import {
-  CheckCircleIcon,
-  ClipboardIcon,
-  PaperClipIcon,
-} from "@heroicons/react/24/outline";
+import { CheckCircledIcon, ClipboardIcon, Link1Icon, PersonIcon, HomeIcon, MobileIcon, EnvelopeOpenIcon, DrawingPinFilledIcon, CheckIcon, CopyIcon } from '@radix-ui/react-icons'
+
+
 import { Card } from "@nextui-org/react";
 import React from "react";
 
@@ -54,12 +52,12 @@ export default function FileInput({
       <div className="flex items-center justify-center w-full">
         <label
           htmlFor={id}
-            className={"flex flex-col items-center justify-center w-full h-64 border-2  border-dashed rounded-lg cursor-pointer   dark:border-gray-600 dark:hover:border-gray-500"+ (isValid ? " border-gray-300 dark:hover:bg-neutral-800 dark:bg-neutral-900 bg-gray-50 hover:bg-gray-100" : " border-red-500 dark:hover:bg-red-950 dark:bg-red-800 bg-red-50 hover:bg-red-100")}
+          className={"flex flex-col items-center justify-center w-full h-64 border-2  border-dashed rounded-lg cursor-pointer   dark:border-gray-600 dark:hover:border-gray-500" + (isValid ? " border-gray-300 dark:hover:bg-neutral-800 dark:bg-neutral-900 bg-gray-50 hover:bg-gray-100" : " border-red-500 dark:hover:bg-red-950 dark:bg-red-800 bg-red-50 hover:bg-red-100")}
         >
           <div className="flex flex-col items-center justify-center pt-5 pb-6">
             {(file && (
-              <CheckCircleIcon className="w-8 h-8 text-green-500" />
-            )) || <PaperClipIcon className="w-8 h-10  text-gray-400" />}
+              <CheckCircledIcon className="w-8 h-8 text-green-500" />
+            )) || <ClipboardIcon className="w-8 h-10  text-gray-400" />}
             <div className="flex flex-row">
               {(file && (
                 <div className="flex flex-row">
@@ -69,10 +67,10 @@ export default function FileInput({
                   </p>
                 </div>
               )) || (
-                <p className="text-sm text-default-400">
-                  Ningun archivo seleccionado
-                </p>
-              )}
+                  <p className="text-sm text-default-400">
+                    Ningun archivo seleccionado
+                  </p>
+                )}
             </div>
             <p className="mb-1 text-sm text-gray-500 dark:text-gray-400">
               <span className="font-semibold">Click para cargar</span> ó

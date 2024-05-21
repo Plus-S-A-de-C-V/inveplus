@@ -1,7 +1,7 @@
 "use client";
 
-import Database from "@/lib/db";
-import React, { useEffect } from "react";
+// import Database from "@/lib/db";
+import React from "react";
 import {
   Table,
   TableHeader,
@@ -18,23 +18,14 @@ import {
   Chip,
   User,
   Pagination,
+  Selection,
+  ChipProps,
+  SortDescriptor
 } from "@nextui-org/react";
 
-import {
-  Modal,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  useDisclosure,
-} from "@nextui-org/react";
+import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
 
-import { PlusIcon } from "@heroicons/react/24/outline";
-import { EllipsisVerticalIcon as VerticalDotsIcon } from "@heroicons/react/24/outline";
-import { MagnifyingGlassIcon as SearchIcon } from "@heroicons/react/24/outline";
-import { ChevronDownIcon } from "@heroicons/react/24/outline";
-
-import newPersonForm from "@/components/newPersonForm";
+import { PlusIcon, MagnifyingGlassIcon, DotsVerticalIcon } from '@radix-ui/react-icons'
 
 import {
   Usuario,
@@ -42,70 +33,84 @@ import {
   statusOptionsColorMap,
   INITIAL_VISIBLE_COLUMNS,
   usersColumns as columns,
+  Column,
 } from "@/lib/definitions";
+
 import NewPersonForm from "@/components/newPersonForm";
 
 export default function Personal() {
   const [users, setUsers] = React.useState<Usuario[]>([]);
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [filterValue, setFilterValue] = React.useState<string>("");
+  const [page, setPage] = React.useState(1);
+  const [pages, setPages] = React.useState(1);
+  const [rowsPerPage, setRowsPerPage] = React.useState(5);
+  const [selectedKeys, setSelectedKeys] = React.useState<Usuario[]>([]);
+  const [filteredItems, setFilteredItems] = React.useState<Usuario[]>([]);
+  const [hasSearchFilter, setHasSearchFilter] = React.useState(false);
+  const [sortedItems, setSortedItems] = React.useState<Usuario[]>([]);
 
-  const [selectedKeys, setSelectedKeys] = React.useState(new Set([]));
-  const [filterValue, setFilterValue] = React.useState("");
-  const hasSearchFilter = Boolean(filterValue);
-
-  const filteredItems = React.useMemo(() => {
-    let filteredUsers = [...users];
-
-    if (hasSearchFilter) {
-      filteredUsers = filteredUsers.filter((user) =>
-        (user.Nombre + " " + user.Apellidos)
-          .toLowerCase()
-          .includes(filterValue.toLowerCase())
-      );
+  React.useEffect(() => {
+    // Get users from api
+    const fetchUsers = async () => {
+      const users = await fetch("/api/users").then((res) => res.json());
+      setUsers(users);
+      setFilteredItems(users);
     }
 
-    return filteredUsers;
-  }, [users, filterValue, hasSearchFilter]);
+    fetchUsers();
+  }, []);
 
-  const [visibleColumns, setVisibleColumns] = React.useState(
-    new Set(INITIAL_VISIBLE_COLUMNS)
-  );
-  const onSearchChange = React.useCallback((value: string) => {
+  const onClear = React.useCallback(() => {
+    setFilterValue("")
+    setPage(1)
+  }, [])
+
+  const onSearchChange = React.useCallback((value?: string) => {
     if (value) {
       setFilterValue(value);
+
+      const filteredItems = users.filter((user) => {
+        return user.Nombre.toLowerCase().includes(value.toLowerCase());
+      });
+
+      setFilteredItems(filteredItems);
+      setPage(1);
     } else {
       setFilterValue("");
+      setFilteredItems(users);
     }
   }, []);
-  const onClear = React.useCallback(() => {
-    setFilterValue("");
+
+  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
+    setRowsPerPage(Number(e.target.value));
+    setPage(1);
   }, []);
+
+  const { isOpen, onOpen, onOpenChange } = React.useDisclosure();
+
   const topContent = React.useMemo(() => {
     return (
-      <div className="flex flex-col gap-4 w-full">
-        <div className="flex justify-between gap-3 items-end flex-wrap w-full">
+      <div className="flex flex-col gap-4">
+        <div className="flex justify-between gap-3 items-end">
           <Input
             isClearable
-            className="w-full"
+            className="w-full sm:max-w-[44%]"
             placeholder="Buscar por nombre..."
-            startContent={<SearchIcon className="h-6 w-6" />}
+            startContent={<MagnifyingGlassIcon className="h-1/2" />}
             value={filterValue}
             onClear={() => onClear()}
             onValueChange={onSearchChange}
           />
-          <div className="flex gap-3 h-full w-full">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button
-                  endContent={<ChevronDownIcon className="h-6 w-6" />}
-                  variant="flat"
-                >
-                  Columnas
+          <div className="flex gap-3">
+            {/* <Dropdown>
+              <DropdownTrigger className="hidden sm:flex">
+                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                  Columns
                 </Button>
               </DropdownTrigger>
               <DropdownMenu
                 disallowEmptySelection
-                aria-label="Tabla Columnnas"
+                aria-label="Table Columns"
                 closeOnSelect={false}
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
@@ -113,35 +118,62 @@ export default function Personal() {
               >
                 {columns.map((column) => (
                   <DropdownItem key={column.uid} className="capitalize">
-                    {column.name.toUpperCase()}
+                    {
+                      // Capitalize the first letter of each word
+                      column.uid
+                        .split(" ")
+                        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+                        .join(" ")
+                    }
                   </DropdownItem>
                 ))}
               </DropdownMenu>
-            </Dropdown>
-            <div className="flex flex-row justify-end">
-              <Button
-                color="primary"
-                endContent={<PlusIcon className="h-6 w-6" />}
-                onClick={() => onOpen()}
-              >
-                Nuevo Usuario
-              </Button>
-            </div>
+            </Dropdown> */}
+            <Button color="primary" endContent={<PlusIcon />} onPress={onOpen}>
+              Agregar nuevo usuario
+            </Button>
           </div>
+
+        </div>
+        <div className="flex justify-between items-center">
+          <span className="text-default-400 text-small">{users.length} usuarios</span>
+          <label className="flex items-center text-default-400 text-small">
+            Filas por pagina:
+            <select
+              className="bg-transparent outline-none text-default-400 text-small"
+              onChange={onRowsPerPageChange}
+            >
+              <option value="5">5</option>
+              <option value="10">10</option>
+              <option value="15">15</option>
+            </select>
+          </label>
         </div>
       </div>
     );
-  }, [filterValue, onClear, onSearchChange, visibleColumns]);
+  }, [filterValue, onClear, onRowsPerPageChange, onSearchChange, users.length]);
+
+  const onNextPage = React.useCallback(() => {
+    if (page < pages) {
+      setPage(page + 1);
+    }
+  }, [page, pages]);
+
+  const onPreviousPage = React.useCallback(() => {
+    if (page > 1) {
+      setPage(page - 1);
+    }
+  }, [page]);
 
   const bottomContent = React.useMemo(() => {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
         <span className="w-[30%] text-small text-default-400">
-          {selectedKeys.size === filteredItems.length
-            ? "Todos los registros seleccionados"
-            : `${selectedKeys.size} de ${filteredItems.length} seleccionados`}
+          {selectedKeys.length === users.length
+            ? "Todos los usuarios seleccionados"
+            : `${selectedKeys.length} de ${filteredItems.length} seleccionados`}
         </span>
-        {/* <Pagination
+        <Pagination
           isCompact
           showControls
           showShadow
@@ -152,57 +184,48 @@ export default function Personal() {
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
-            Previous
+            Anterior
           </Button>
           <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
-            Next
+            Siguiente
           </Button>
-        </div> */}
+        </div>
       </div>
     );
-  }, [filteredItems.length, selectedKeys.size]);
+  }, [selectedKeys, filteredItems.length, page, pages, onPreviousPage, onNextPage]);
 
-  const headerColumns = React.useMemo(() => {
-    if (visibleColumns === "all") return columns;
+  const statusColorMap: Record<string, ChipProps["color"]> = {
+    active: "success",
+    paused: "danger",
+    vacation: "warning",
+  };
 
-    return columns.filter((column) =>
-      Array.from(visibleColumns).includes(column.uid)
-    );
-  }, [visibleColumns]);
-
-  const sortedItems = React.useMemo(() => {
-    return [...filteredItems].sort((a, b) => {
-      const first = a[sortDescriptor.column];
-      const second = b[sortDescriptor.column];
-      const cmp = first < second ? -1 : first > second ? 1 : 0;
-
-      return sortDescriptor.direction === "descending" ? -cmp : cmp;
-    });
-  }, [filteredItems]);
-
-  const renderCell = React.useCallback((user, columnKey) => {
-    const cellValue = user[columnKey];
+  const renderCell = React.useCallback((user: Usuario, columnKey: React.Key) => {
+    // const cellValue = user[columnKey as keyof User];
 
     switch (columnKey) {
       case "persona":
         return (
-          // TODO: Update user avatar
           <User
-            avatarProps={{ radius: "lg", src: user.avatar }}
-            description={user.email}
-            name={cellValue}
+            avatarProps={{ radius: "lg", src: "" }}
+            description={user.Apellidos}
+            name={user.Nombre}
           >
-            {user.email}
+            {user.Nombre} + " " + {user.Apellidos}
           </User>
         );
-      case "rol":
+      case "role":
         return (
           <div className="flex flex-col">
             <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">
-              {user.rol}
-            </p>
+            <p className="text-bold text-tiny capitalize text-default-400">{user.Apellidos}</p>
           </div>
+        );
+      case "status":
+        return (
+          <Chip className="capitalize" color={statusColorMap[user.id]} size="sm" variant="flat">
+            estado
+          </Chip>
         );
       case "actions":
         return (
@@ -210,47 +233,46 @@ export default function Personal() {
             <Dropdown>
               <DropdownTrigger>
                 <Button isIconOnly size="sm" variant="light">
-                  <VerticalDotsIcon className="text-default-300" />
+                  <DotsVerticalIcon className="text-default-900" />
                 </Button>
               </DropdownTrigger>
               <DropdownMenu>
-                <DropdownItem>Ver</DropdownItem>
-                <DropdownItem>Editar</DropdownItem>
-                <DropdownItem>Eliminar</DropdownItem>
+                <DropdownItem>View</DropdownItem>
+                <DropdownItem>Edit</DropdownItem>
+                <DropdownItem>Delete</DropdownItem>
               </DropdownMenu>
             </Dropdown>
           </div>
         );
       default:
-        return cellValue;
+        return "N/A";
     }
   }, []);
 
-  const [sortDescriptor, setSortDescriptor] = React.useState({
-    column: "edad",
-    direction: "ascending",
-  });
-
   return (
-    <div className="w-full h-full">
-      <Modal
-        size="5xl"
-        isOpen={isOpen}
-        onClose={onClose}
-        backdrop="blur"
-        scrollBehavior="inside"
-        placement="center"
-      >
+    <>
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
         <ModalContent>
-          <ModalHeader>Nueva Persona</ModalHeader>
-          <ModalBody>
-            <NewPersonForm />
-          </ModalBody>
-          <ModalFooter></ModalFooter>
+          {(onClose) => {
+            <>
+              <ModalHeader>Agregar nuevo usuario</ModalHeader>
+              <ModalBody>
+                <NewPersonForm />
+              </ModalBody>
+              <ModalFooter>
+                <Button color="primary" variant="flat" onPress={onclose}>
+                  Cancelar
+                </Button>
+                <Button color="primary" variant="flat" onPress={onclose}>
+                  Guardar
+                </Button>
+              </ModalFooter>
+            </>
+          }}
         </ModalContent>
       </Modal>
       <Table
-        aria-label="Tabla de usuarios"
+        aria-label="Example table with custom cells, pagination and sorting"
         isHeaderSticky
         bottomContent={bottomContent}
         bottomContentPlacement="outside"
@@ -259,34 +281,38 @@ export default function Personal() {
         }}
         selectedKeys={selectedKeys}
         selectionMode="multiple"
-        sortDescriptor={sortDescriptor}
         topContent={topContent}
         topContentPlacement="outside"
         onSelectionChange={setSelectedKeys}
-        onSortChange={setSortDescriptor}
-        className="w-full"
       >
-        <TableHeader columns={headerColumns}>
-          {(column) => (
+        <TableHeader columns={columns}>
+          {(column: Column) => (
             <TableColumn
               key={column.uid}
               align={column.uid === "actions" ? "center" : "start"}
-              allowsSorting={column.sorteable}
+              allowsSorting={column.sortable}
             >
               {column.name}
             </TableColumn>
           )}
         </TableHeader>
-        <TableBody emptyContent={"Sin registros"} items={sortedItems}>
-          {(item) => (
-            <TableRow key={item.id}>
-              {(columnKey) => (
-                <TableCell>{renderCell(item, columnKey)}</TableCell>
-              )}
-            </TableRow>
-          )}
+        <TableBody>
+          {
+            filteredItems.map((user) => {
+              return (
+                <TableRow key={user.id}>
+                  {columns.map((column) => (
+                    <TableCell key={column.uid}>
+                      {renderCell(user, column.uid)}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              );
+            })
+          }
         </TableBody>
       </Table>
-    </div>
+    </>
   );
+
 }
