@@ -49,10 +49,6 @@ export default function Personal() {
   const [users, setUsers] = React.useState<Usuario[]>([]);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  useEffect(() => {
-    // Load users
-  }, []);
-
   const [selectedKeys, setSelectedKeys] = React.useState(new Set([]));
   const [filterValue, setFilterValue] = React.useState("");
   const hasSearchFilter = Boolean(filterValue);
