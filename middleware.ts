@@ -1,11 +1,19 @@
-// import NextAuth from "next-auth";
-// import { authConfig } from "./auth.config";
+// export { auth as middleware } from "@/auth";
 
-// export default NextAuth(authConfig).auth;
+export const config = {
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+};
 
-// export const config = {
-//   // https://nextjs.org/docs/app/building-your-application/routing/middleware#matcher
-//   matcher: ["/((?!api|_next/static|_next/image|.*\\.png$).*)"],
-// };
+import { auth } from "@/auth";
 
-export { default } from "next-auth/middleware";
+export default auth((req) => {
+  if (!req.auth && !req.url.includes("/signin")) {
+    return Response.redirect(new URL("/signin", req.url));
+  }
+
+  // //signin
+  // if (!req.auth) {
+  //   const url = req.url.replace(req.nextUrl.pathname, "/login");
+  //   return Response.redirect(url);
+  // }
+});
