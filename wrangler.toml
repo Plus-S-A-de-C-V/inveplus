@@ -1,0 +1,8 @@
+[[d1_databases]]
+binding = "DB"
+database_name = "inveplus"
+database_id = "e46cb863-d4be-4fd0-bee1-24bde628cbab"
+
+[[r2_buckets]]
+binding = 'S3'
+bucket_name = "inveplus"

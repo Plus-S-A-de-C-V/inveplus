@@ -77,10 +77,14 @@ export const statusOptionsColorMap = {
 export const INITIAL_VISIBLE_COLUMNS = ["persona", "rol", "numero"];
 
 export const usersColumns = [
-  { name: "PERSONA", uid: "persona", sorteable: true },
-  { name: "EDAD", uid: "edad", sorteable: true },
-  { name: "ROL", uid: "rol", sorteable: true },
-  // { name: "ESTADO", uid: "estado", sorteable: true },
-  { name: "EMAIL", uid: "email" },
-  { name: "NUMERO", uid: "numero" },
+  { name: "Nombre", uid: "persona", sortable: true },
+  // { name: "Edad", uid: "edad", sortable: true },
+  // { name: "Rol", uid: "rol", sortable: true },
+  // { name: "ESTADO", uid: "estado", sortable: true },
+  // { name: "Correo Electronico", uid: "email" },
+  // { name: "Numero Telefonico", uid: "numero" },
+  { name: "Actions", uid: "actions" },
 ];
+
+// Export column type
+export type Column = (typeof usersColumns)[number];
