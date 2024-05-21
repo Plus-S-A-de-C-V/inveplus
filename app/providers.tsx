@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { ThemeProviderProps } from "next-themes/dist/types";
 // import { ClerkProvider } from "@clerk/nextjs";
-import { SessionProvider } from "next-auth/react";
+// import { SessionProvider } from "next-auth/react";
 
 export interface ProvidersProps {
   children: React.ReactNode;
@@ -19,11 +19,11 @@ export function Providers({ children, themeProps, session }: ProvidersProps) {
 
   return (
     // <ClerkProvider>
-    <SessionProvider session={session}>
+    // <SessionProvider session={session}>
       <NextUIProvider navigate={router.push}>
         <NextThemesProvider {...themeProps}>{children}</NextThemesProvider>
       </NextUIProvider>
-    </SessionProvider>
+    // </SessionProvider>
 
     // </ClerkProvider>
   );

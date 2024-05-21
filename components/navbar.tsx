@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Navbar as NextUINavbar,
   NavbarContent,
@@ -9,19 +8,19 @@ import {
   NavbarItem,
   NavbarMenuItem,
 } from "@nextui-org/navbar";
-import { Button } from "@nextui-org/button";
-import { Kbd } from "@nextui-org/kbd";
-import { Link } from "@nextui-org/link";
-import { Input } from "@nextui-org/input";
-import { Image } from "@nextui-org/image";
+import { Button } from "@nextui-org/react";
+import { Kbd } from "@nextui-org/react";
+import { Link } from "@nextui-org/react";
+import { Input } from "@nextui-org/react";
+import { Image } from "@nextui-org/react";
 
-import { link as linkStyles } from "@nextui-org/theme";
+import { link as linkStyles } from "@nextui-org/react";
 
 import { siteConfig } from "@/config/site";
 import NextLink from "next/link";
 import clsx from "clsx";
 
-import { Router } from "next/router";
+import { signOut } from "next-auth/react"
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import {
@@ -32,35 +31,31 @@ import {
   SearchIcon,
 } from "@/components/icons";
 
-import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
-import { useSession, signIn, signOut } from "next-auth/react";
+// import { ArrowRightStartOnRectangleIcon } from "@heroicons/react/24/outline";
+import { ExitIcon } from '@radix-ui/react-icons'
+
 
 export const Navbar = () => {
-  const { data: session, status } = useSession();
-  if (status !== "authenticated") {
-    // TODO: Redirect to login
-  }
-
-  const searchInput = (
-    <Input
-      aria-label="Search"
-      classNames={{
-        inputWrapper: "bg-default-100",
-        input: "text-sm",
-      }}
-      endContent={
-        <Kbd className="hidden lg:inline-block" keys={["command"]}>
-          K
-        </Kbd>
-      }
-      labelPlacement="outside"
-      placeholder="Search..."
-      startContent={
-        <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
-      }
-      type="search"
-    />
-  );
+  // const searchInput = (
+  //   <Input
+  //     aria-label="Search"
+  //     classNames={{
+  //       inputWrapper: "bg-default-100",
+  //       input: "text-sm",
+  //     }}
+  //     endContent={
+  //       <Kbd className="hidden lg:inline-block" keys={["command"]}>
+  //         K
+  //       </Kbd>
+  //     }
+  //     labelPlacement="outside"
+  //     placeholder="Search..."
+  //     startContent={
+  //       <SearchIcon className="text-base text-default-400 pointer-events-none flex-shrink-0" />
+  //     }
+  //     type="search"
+  //   />
+  // );
 
   return (
     <NextUINavbar maxWidth="xl" position="sticky">
@@ -97,15 +92,15 @@ export const Navbar = () => {
           <ThemeSwitch />
         </NavbarItem>
 
-        <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
+        {/* <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem> */}
         <NavbarItem className="hidden md:flex">
           <Button
             isExternal
-            as={Link}
+            // as={Link}
             className="text-sm font-normal text-default-600 bg-default-100"
             //href={siteConfig.links.sponsor}
             startContent={
-              <ArrowRightStartOnRectangleIcon className="text-danger h-6 w-6 " />
+              <ExitIcon className="text-danger h-6 w-6 " />
             }
             variant="flat"
             onClick={() => signOut()}
@@ -121,7 +116,7 @@ export const Navbar = () => {
       </NavbarContent>
 
       <NavbarMenu>
-        {searchInput}
+        {/* {searchInput} */}
         <div className="mx-4 mt-2 flex flex-col gap-2">
           {siteConfig.navItems.map((item, index) => (
             <NavbarMenuItem key={`${item}-${index}`}>
