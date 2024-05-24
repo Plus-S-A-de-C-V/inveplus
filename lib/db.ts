@@ -1,181 +1,22 @@
-// import { Surreal } from "surrealdb.js";
-// import * as Minio from "minio";
-import { nanoid } from "nanoid";
-
-export class FoldersNames {
-  static readonly profilePictures = "profilePictures";
-  // static readonly documents = "documents";
-  // static readonly invoices = "invoices";
-}
-
-// class DatabaseInstance {
-//   // private db: Surreal | null = null;
-//   // private minio: Minio.Client | null = null;
-
-//   // async connectDB() {
-//   //   if (this.db) {
-//   //     console.log("DB already connected");
-//   //     return;
-//   //   }
-//   //   console.log("Attempting connect to database @ ", process.env.DB_URL);
-//   //   this.db = new Surreal();
-//   //   try {
-//   //     await this.db.connect(process.env.DB_URL || "", {
-//   //       namespace: process.env.DB_NAMESPACE || "",
-//   //       database: process.env.DB_NAME || "",
-
-//   //       auth: {
-//   //         namespace: process.env.DB_NAMESPACE || "",
-//   //         database: process.env.DB_NAME || "",
-//   //         // scope: process.env.DB_SCOPE || "",
-//   //         username: process.env.DB_USERNAME || "",
-//   //         password: process.env.DB_PASSWORD || "",
-//   //       },
-//   //     });
-//   //     console.log(
-//   //       "Successfully connected to database @ ",
-//   //       process.env.DB_URL || ""
-//   //     );
-//   //   } catch (error) {
-//   //     console.error(
-//   //       "Failed to connect to database @ ",
-//   //       process.env.DB_URL || ""
-//   //     );
-//   //     console.error(error);
-//   //     this.db = null;
-//   //     return;
-//   //   }
-//   // }
-
-//   // async connectS3() {
-//   //   if (this.minio) {
-//   //     console.log("S3 already connected");
-//   //     return;
-//   //   }
-
-//   //   console.log("Attempting to connect to S3 @ ", process.env.MINIO_ENDPOINT);
-//   //   this.minio = new Minio.Client({
-//   //     endPoint: process.env.MINIO_ENDPOINT || "localhost",
-//   //     port: parseInt(process.env.MINIO_PORT || "9000"),
-//   //     useSSL: false,
-//   //     accessKey: process.env.MINIO_ACCESS_KEY || "",
-//   //     secretKey: process.env.MINIO_SECRET_KEY || "",
-//   //   });
-//   // }
-
-//   // async disconnect() {
-//   //   if (this.db) {
-//   //     await this.db.close();
-//   //   }
-//   // }
-
-//   async nuevoUsuario(
-//     profilePicture: string,
-//     nombre: string,
-//     apellidos: string,
-//     password: string | null,
-//     fechaDeNacimiento: string,
-//     curp: string,
-//     rfc: string | null,
-//     nss: string | null,
-//     claveLector: string,
-//     direccion: string,
-//     numeroTelefonico: string,
-//     email: string,
-//     clinica: string | null,
-//     tipoSangre: string,
-//     INE: string,
-//     SituacionFiscal: string | null,
-//     NSS: string | null,
-//     CURP: string
-//   ) {
-//     console.log(
-//       "Received data: ",
-//       profilePicture,
-//       nombre,
-//       apellidos,
-//       password,
-//       fechaDeNacimiento,
-//       curp,
-//       rfc,
-//       nss,
-//       claveLector,
-//       direccion,
-//       numeroTelefonico,
-//       email,
-//       clinica,
-//       tipoSangre,
-//       INE,
-//       SituacionFiscal,
-//       NSS,
-//       CURP
-//     );
-
-//     console.log("Profile Picture URL: ", profilePicture);
-//     console.log("Nombre: ", nombre);
-//     console.log("Apellidos: ", apellidos);
-//     console.log("Password: ", password);
-//     console.log("Fecha de nacimiento: ", fechaDeNacimiento);
-//     console.log("CURP: ", curp);
-//     console.log("RFC: ", rfc);
-//     console.log("NSS: ", nss);
-//     console.log("Clave lector: ", claveLector);
-//     console.log("Direccion: ", direccion);
-//     console.log("Numero telefonico: ", numeroTelefonico);
-//     console.log("Email: ", email);
-//     console.log("Clinica: ", clinica);
-//     console.log("Tipo de sangre: ", tipoSangre);
-//     console.log("INE URL: ", INE);
-//     console.log("Situacion fiscal URL: ", SituacionFiscal);
-//     console.log("NSS URL: ", NSS);
-//     console.log("CURP URL: ", CURP);
-//     return "ok";
-//   }
-
-//   async blobToBuffer(blob: Blob) {
-//     const arrayBuffer = await blob.arrayBuffer();
-//     const buffer = Buffer.from(arrayBuffer);
-
-//     return buffer;
-//   }
-
-//   async uploadFile(blob: Blob, folder: string) {
-//     this.connectS3();
-
-//     const contentType = blob.type;
-//     const size = blob.size;
-//     const buffer = await this.blobToBuffer(blob);
-//     const name = nanoid() + "." + blob.type.split("/")[1];
-
-//     const objectName = folder + "/" + name;
-
-//     // TODO: Sanitize name and get thumbnail
-
-//     // Don't know how to use the etag, so we just return the name
-//     const res = await this.minio?.putObject("plus", objectName, buffer, size, {
-//       "Content-Type": contentType,
-//     });
-//     return objectName;
-//   }
-// }
-
-// const database = new DatabaseInstance();
-// export default database;
-
 const account_id = process.env.ACCOUNT_ID;
 const database_id = process.env.DATABASE_ID;
 const bearer_token = process.env.BEARER_TOKEN;
+const BEARER_TOKEN = bearer_token;
+const DATABASE_ID = database_id || "";
 
 const S3_API_URL = process.env.S3_API_URL || "";
 const S3_API_TOKEN = process.env.S3_API_TOKEN || "";
 const S3_ACCESS_KEY = process.env.S3_ACCESS_KEY || "";
 const S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY || "";
 const ACCOUNT_ID = process.env.ACCOUNT_ID || "";
+const ACCOUNT_EMAIL = process.env.ACCOUNT_EMAIL || "";
 
+//import { S3 } from "@aws-sdk/client-s3";
 import S3 from "aws-sdk/clients/s3.js";
 
 import { Usuario } from "@/lib/definitions";
-import { ResumeIcon } from "@radix-ui/react-icons";
+
+import Cloudflare from "cloudflare";
 
 const s3 = new S3({
   endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
@@ -184,32 +25,21 @@ const s3 = new S3({
   signatureVersion: "v4",
 });
 
+const cloudflare = new Cloudflare({
+  apiEmail: ACCOUNT_EMAIL,
+  apiToken: BEARER_TOKEN,
+});
+
 export async function getUsers() {
-  // fetch with post: https://api.cloudflare.com/client/v4/accounts/{account_id}/d1/database/{database_id}/query
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body: '{"sql":"SELECT * FROM Usuario"}',
-  };
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: "SELECT * FROM Usuario",
+  });
 
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to fetch data: ", err);
-      return [];
-    });
-
-  const data = await response.result[0];
+  const data = await response[0];
 
   if (!data.success) {
     console.error("Failed to fetch data: ", data);
-    return [];
+    return null;
   }
 
   const result = data.results;
@@ -236,38 +66,29 @@ export async function getUsers() {
 }
 
 export async function getUser(id: string) {
-  // fetch with post: https://api.cloudflare.com/client/v4/accounts/{account_id}/d1/database/{database_id}/query
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body: `{"params":["${id}"],"sql":"SELECT * FROM Usuario WHERE id = ?"}`,
-  };
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `SELECT * FROM Usuario WHERE id = "${id}"`,
+  });
 
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to fetch data: ", err);
-      return null;
-    });
-
-  const data = await response.result[0];
+  const data = await response[0];
 
   if (!data.success) {
     console.error("Failed to fetch data: ", data);
     return null;
   }
 
-  const result = data.results[0];
-
-  if (!result) {
+  const _resultArray = data.results;
+  if (!_resultArray) {
     return null;
   }
+
+  const _result = _resultArray[0];
+
+  if (!_result) {
+    return null;
+  }
+
+  const result = _result;
 
   const user: Usuario = {
     id: result.id,
@@ -287,459 +108,57 @@ export async function getUser(id: string) {
 export async function addUser(user: Usuario) {
   // first add the user to the user table
 
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.id +
-      '","' +
-      user.Nombre +
-      '","' +
-      user.Apellidos +
-      '","' +
-      user.Foto +
-      '","' +
-      user.Password +
-      '"],"sql":"INSERT INTO Usuario (id, Nombre, Apellidos, LINK_Foto, Password) VALUES (?,?,?,?,?);"}',
-  };
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `INSERT INTO Usuario (id, Nombre, Apellidos, LINK_Foto, Password) VALUES ("${user.id}", "${user.Nombre}", "${user.Apellidos}", "${user.Foto}", "${user.Password}");`,
+  });
 
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to add user: ", err);
-      return null;
-    });
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `INSERT INTO InformacionMedica (UsuarioId, ClinicaAsignada, TipoDeSangre) VALUES ("${user.id}", "${user.InformacionMedica?.ClinicaAsignada}", "${user.InformacionMedica?.TipoDeSangre}");`,
+  });
 
-  const data = await response;
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `INSERT INTO InformacionPersonal (UsuarioId, FechaDeNacimiento, CURP, RFC, ClaveLector, Direccion, NumeroTelefonico, correoElectronico, LINK_INE, LINK_ConstanciaDeSituacionFiscal, LINK_AsignacionDeNSS, LINK_ComprobanteDeDominio, LINK_CURP) VALUES ("${user.id}", "${user.InformacionPersonal?.FechaDeNacimiento}", "${user.InformacionPersonal?.CURP}", "${user.InformacionPersonal?.RFC}", "${user.InformacionPersonal?.NSS}", "${user.InformacionPersonal?.ClaveLector}", "${user.InformacionPersonal?.Direccion}", "${user.InformacionPersonal?.NumeroTelefonico}", "${user.InformacionPersonal?.correoElectronico}", "${user.DocumentosPersonales?.INE}", "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", "${user.DocumentosPersonales?.AsignacionDeNSS}", "${user.DocumentosPersonales?.CURP}");`,
+  });
 
-  if (!data.success) {
-    console.error("Failed to add user: ", data);
-    return null;
-  }
-
-  // then add the user to the personal table
-
-  const options2 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.id +
-      '","' +
-      user.InformacionPersonal?.FechaDeNacimiento +
-      '","' +
-      user.InformacionPersonal?.CURP +
-      '","' +
-      user.InformacionPersonal?.RFC +
-      '","' +
-      user.InformacionPersonal?.NSS +
-      '","' +
-      user.InformacionPersonal?.ClaveLector +
-      '","' +
-      user.InformacionPersonal?.Direccion +
-      '","' +
-      user.InformacionPersonal?.NumeroTelefonico +
-      '","' +
-      user.InformacionPersonal?.correoElectronico +
-      '"],"sql":"INSERT INTO Personal (UsuarioId, FechaDeNacimiento, CURP, RFC, NSS, ClaveLector, Direccion, NumeroTelefonico, correoElectronico) VALUES (?,?,?,?,?,?,?,?,?);"}',
-  };
-
-  const response2 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options2
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to add user: ", err);
-      return null;
-    });
-
-  const data2 = await response2;
-
-  if (!data2.success) {
-    console.error("Failed to add user: ", data2);
-    return null;
-  }
-
-  // then add the user to the medical table
-
-  const options3 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.id +
-      '","' +
-      user.InformacionMedica?.ClinicaAsignada +
-      '","' +
-      user.InformacionMedica?.TipoDeSangre +
-      '"],"sql":"INSERT INTO Medico (UsuarioId, ClinicaAsignada, TipoDeSangre) VALUES (?,?,?);"}',
-  };
-
-  const response3 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options3
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to add user: ", err);
-      return null;
-    });
-
-  const data3 = await response3;
-
-  if (!data3.success) {
-    console.error("Failed to add user: ", data3);
-    return null;
-  }
-
-  // then add the user to the documents table
-
-  const options4 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.id +
-      '","' +
-      user.DocumentosPersonales?.INE +
-      '","' +
-      user.DocumentosPersonales?.ConstanciaDeSituacionFiscal +
-      '","' +
-      user.DocumentosPersonales?.AsignacionDeNSS +
-      '","' +
-      user.DocumentosPersonales?.ComprobanteDeDomicilio +
-      '","' +
-      user.DocumentosPersonales?.CURP +
-      '"],"sql":"INSERT INTO Documentos (UsuarioId, INE, ConstanciaDeSituacionFiscal, AsignacionDeNSS, ComprobanteDeDomicilio, CURP) VALUES (?,?,?,?,?,?);"}',
-  };
-
-  const response4 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options4
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to add user: ", err);
-      return null;
-    });
-
-  const data4 = await response4;
-
-  if (!data4.success) {
-    console.error("Failed to add user: ", data4);
-    return null;
-  }
-
-  return data;
+  return user;
 }
 
 export async function updateUser(user: Usuario) {
+  // Check if the user exists
+  const userToUpdate = await getUser(user.id);
+  if (!userToUpdate) {
+    console.error("Failed to update user: User not found");
+    return null;
+  }
+
   // first update the user in the user table
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `UPDATE Usuario SET Nombre = "${user.Nombre}", Apellidos = "${user.Apellidos}", LINK_Foto = "${user.Foto}", Password = "${user.Password}" WHERE id = "${user.id}"`,
+  });
 
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.Nombre +
-      '","' +
-      user.Apellidos +
-      '","' +
-      user.Foto +
-      '","' +
-      user.Password +
-      '","' +
-      user.id +
-      '"],"sql":"UPDATE Usuario SET Nombre = ?, Apellidos = ?, LINK_Foto = ?, Password = ? WHERE id = ?;"}',
-  };
+  // then update the user in the InformacionMedica table
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `UPDATE InformacionMedica SET ClinicaAsignada = "${user.InformacionMedica?.ClinicaAsignada}", TipoDeSangre = "${user.InformacionMedica?.TipoDeSangre}" WHERE UsuarioId = "${user.id}"`,
+  });
 
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to update user: ", err);
-      return null;
-    });
+  // then update the user in the InformacionPersonal table
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `UPDATE InformacionPersonal SET FechaDeNacimiento = "${user.InformacionPersonal?.FechaDeNacimiento}", CURP = "${user.InformacionPersonal?.CURP}", RFC = "${user.InformacionPersonal?.RFC}", ClaveLector = "${user.InformacionPersonal?.ClaveLector}", Direccion = "${user.InformacionPersonal?.Direccion}", NumeroTelefonico = "${user.InformacionPersonal?.NumeroTelefonico}", correoElectronico = "${user.InformacionPersonal?.correoElectronico}", LINK_INE = "${user.DocumentosPersonales?.INE}", LINK_ConstanciaDeSituacionFiscal = "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", LINK_AsignacionDeNSS = "${user.DocumentosPersonales?.AsignacionDeNSS}", LINK_ComprobanteDeDominio = "${user.DocumentosPersonales?.ComprobanteDeDomicilio}", LINK_CURP = "${user.DocumentosPersonales?.CURP}" WHERE UsuarioId = "${user.id}"`,
+  });
 
-  const data = await response;
-
-  if (!data.success) {
-    console.error("Failed to update user: ", data);
-    return null;
-  }
-
-  // then update the user in the personal table
-
-  const options2 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.InformacionPersonal?.FechaDeNacimiento +
-      '","' +
-      user.InformacionPersonal?.CURP +
-      '","' +
-      user.InformacionPersonal?.RFC +
-      '","' +
-      user.InformacionPersonal?.NSS +
-      '","' +
-      user.InformacionPersonal?.ClaveLector +
-      '","' +
-      user.InformacionPersonal?.Direccion +
-      '","' +
-      user.InformacionPersonal?.NumeroTelefonico +
-      '","' +
-      user.InformacionPersonal?.correoElectronico +
-      '","' +
-      user.id +
-      '"],"sql":"UPDATE Personal SET FechaDeNacimiento = ?, CURP = ?, RFC = ?, NSS = ?, ClaveLector = ?, Direccion = ?, NumeroTelefonico = ?, correoElectronico = ? WHERE UsuarioId = ?;"}',
-  };
-
-  const response2 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options2
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to update user: ", err);
-      return null;
-    });
-
-  const data2 = await response2;
-
-  if (!data2.success) {
-    console.error("Failed to update user: ", data2);
-    return null;
-  }
-
-  // then update the user in the medical table
-
-  const options3 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.InformacionMedica?.ClinicaAsignada +
-      '","' +
-      user.InformacionMedica?.TipoDeSangre +
-      '","' +
-      user.id +
-      '"],"sql":"UPDATE Medico SET ClinicaAsignada = ?, TipoDeSangre = ? WHERE UsuarioId = ?;"}',
-  };
-
-  const response3 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options3
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to update user: ", err);
-      return null;
-    });
-
-  const data3 = await response3;
-
-  if (!data3.success) {
-    console.error("Failed to update user: ", data3);
-    return null;
-  }
-
-  // then update the user in the documents table
-
-  const options4 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body:
-      '{"params":[" ' +
-      user.DocumentosPersonales?.INE +
-      '","' +
-      user.DocumentosPersonales?.ConstanciaDeSituacionFiscal +
-      '","' +
-      user.DocumentosPersonales?.AsignacionDeNSS +
-      '","' +
-      user.DocumentosPersonales?.ComprobanteDeDomicilio +
-      '","' +
-      user.DocumentosPersonales?.CURP +
-      '","' +
-      user.id +
-      '"],"sql":"UPDATE Documentos SET INE = ?, ConstanciaDeSituacionFiscal = ?, AsignacionDeNSS = ?, ComprobanteDeDomicilio = ?, CURP = ? WHERE UsuarioId = ?;"}',
-  };
-
-  const response4 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options4
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to update user: ", err);
-      return null;
-    });
-
-  const data4 = await response4;
-
-  if (!data4.success) {
-    console.error("Failed to update user: ", data4);
-    return null;
-  }
-
-  return data;
+  return user;
 }
 
 export async function deleteUser(id: string) {
   // first delete the user in the user table
 
   const userToDelete = await getUser(id);
-
   if (!userToDelete) {
     console.error("Failed to delete user: User not found");
     return null;
   }
 
-  const options = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body: `{"params":["${id}"],"sql":"DELETE FROM Usuario WHERE id = ?"}`,
-  };
-
-  const response = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to delete user: ", err);
-      return null;
-    });
-
-  const data = await response;
-
-  if (!data.success) {
-    console.error("Failed to delete user: ", data);
-    return null;
-  }
-
-  // then delete the user in the personal table
-
-  const options2 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body: `{"params":["${id}"],"sql":"DELETE FROM Personal WHERE UsuarioId = ?"}`,
-  };
-
-  const response2 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options2
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to delete user: ", err);
-      return null;
-    });
-
-  const data2 = await response2;
-
-  if (!data2.success) {
-    console.error("Failed to delete user: ", data2);
-    return null;
-  }
-
-  // then delete the user in the medical table
-
-  const options3 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body: `{"params":["${id}"],"sql":"DELETE FROM Medico WHERE UsuarioId = ?"}`,
-  };
-
-  const response3 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options3
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to delete user: ", err);
-      return null;
-    });
-
-  const data3 = await response3;
-
-  if (!data3.success) {
-    console.error("Failed to delete user: ", data3);
-    return null;
-  }
-
-  // then delete the user in the documents table
-
-  const options4 = {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${bearer_token}`,
-    },
-    body: `{"params":["${id}"],"sql":"DELETE FROM Documentos WHERE UsuarioId = ?"}`,
-  };
-
-  const response4 = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${account_id}/d1/database/${database_id}/query`,
-    options4
-  )
-    .then((response) => response.json())
-    .catch((err) => {
-      console.error("Failed to delete user: ", err);
-      return null;
-    });
-
-  const data4 = await response4;
-
-  if (!data4.success) {
-    console.error("Failed to delete user: ", data4);
-    return null;
-  }
-
-  // Now delete all objects from the user
-
   deleteObject(userToDelete.Foto);
-
   if (userToDelete.DocumentosPersonales) {
     deleteObject(userToDelete.DocumentosPersonales.INE);
     deleteObject(userToDelete.DocumentosPersonales.ConstanciaDeSituacionFiscal);
@@ -747,6 +166,18 @@ export async function deleteUser(id: string) {
     deleteObject(userToDelete.DocumentosPersonales.ComprobanteDeDomicilio);
     deleteObject(userToDelete.DocumentosPersonales.CURP);
   }
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `DELETE FROM InformacionMedica WHERE UsuarioId = "${id}"`,
+  });
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `DELETE FROM InformacionPersonal WHERE UsuarioId = "${id}"`,
+  });
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `DELETE FROM Usuario WHERE Id = "${id}"`,
+  });
 
   return userToDelete;
 }

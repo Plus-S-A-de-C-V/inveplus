@@ -64,4 +64,9 @@ CREATE TABLE IF NOT EXISTS Horario (
 
     FOREIGN KEY (Multiplicador) REFERENCES FactoresAjusteSueldo(Nombre)
 );
+
+-- PENDING: INVENTORY & SUPPLIERS
+
+
+
 -- COMMIT;

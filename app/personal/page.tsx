@@ -20,12 +20,13 @@ import {
   Pagination,
   Selection,
   ChipProps,
-  SortDescriptor
+  useDisclosure,
+  Tooltip,
+  Spinner,
+  Modal, ModalContent, ModalHeader, ModalBody, ModalFooter
 } from "@nextui-org/react";
 
-import { Modal, ModalContent, ModalHeader, ModalBody, ModalFooter } from "@nextui-org/react";
-
-import { PlusIcon, MagnifyingGlassIcon, DotsVerticalIcon } from '@radix-ui/react-icons'
+import { PlusIcon, MagnifyingGlassIcon, DotsVerticalIcon, EyeOpenIcon, Pencil1Icon, TrashIcon, ReloadIcon } from '@radix-ui/react-icons'
 
 import {
   Usuario,
@@ -34,20 +35,28 @@ import {
   INITIAL_VISIBLE_COLUMNS,
   usersColumns as columns,
   Column,
+  Date as Fecha
 } from "@/lib/definitions";
 
-import NewPersonForm from "@/components/newPersonForm";
+import PersonForm from "@/components/PersonForm";
+import { ItemsTable } from "@/components/table";
+
+import { Toaster, toast } from 'sonner';
+import { Items } from "cloudflare/resources/rules/lists/items";
 
 export default function Personal() {
   const [users, setUsers] = React.useState<Usuario[]>([]);
+  const [userToViewOrEdit, setUserToViewOrEdit] = React.useState<Usuario | undefined>(undefined);
+  const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
   const [filterValue, setFilterValue] = React.useState<string>("");
   const [page, setPage] = React.useState(1);
   const [pages, setPages] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
-  const [selectedKeys, setSelectedKeys] = React.useState<Usuario[]>([]);
+  const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
   const [filteredItems, setFilteredItems] = React.useState<Usuario[]>([]);
-  const [hasSearchFilter, setHasSearchFilter] = React.useState(false);
-  const [sortedItems, setSortedItems] = React.useState<Usuario[]>([]);
+  const [loadingUsers, setLoadingUsers] = React.useState(true);
+
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   React.useEffect(() => {
     // Get users from api
@@ -55,10 +64,19 @@ export default function Personal() {
       const users = await fetch("/api/users").then((res) => res.json());
       setUsers(users);
       setFilteredItems(users);
+      setLoadingUsers(false);
     }
 
     fetchUsers();
   }, []);
+
+  const reloadUsers = async () => {
+    setLoadingUsers(true);
+    const users = await fetch("/api/users").then((res) => res.json());
+    setUsers(users);
+    setFilteredItems(users);
+    setLoadingUsers(false);
+  }
 
   const onClear = React.useCallback(() => {
     setFilterValue("")
@@ -85,8 +103,6 @@ export default function Personal() {
     setRowsPerPage(Number(e.target.value));
     setPage(1);
   }, []);
-
-  const { isOpen, onOpen, onOpenChange } = React.useDisclosure();
 
   const topContent = React.useMemo(() => {
     return (
@@ -129,7 +145,14 @@ export default function Personal() {
                 ))}
               </DropdownMenu>
             </Dropdown> */}
-            <Button color="primary" endContent={<PlusIcon />} onPress={onOpen}>
+            <Button color="default" startContent={<ReloadIcon />} onPress={reloadUsers} variant="bordered">
+              Recargar Usuarios
+            </Button>
+            <Button color="primary" endContent={<PlusIcon />} onPress={() => {
+              setUserToViewOrEdit(undefined);
+              onOpenChange();
+              setMode("create");
+            }}>
               Agregar nuevo usuario
             </Button>
           </div>
@@ -168,11 +191,11 @@ export default function Personal() {
   const bottomContent = React.useMemo(() => {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
-        <span className="w-[30%] text-small text-default-400">
+        {/* <span className="w-[30%] text-small text-default-400">
           {selectedKeys.length === users.length
             ? "Todos los usuarios seleccionados"
             : `${selectedKeys.length} de ${filteredItems.length} seleccionados`}
-        </span>
+        </span> */}
         <Pagination
           isCompact
           showControls
@@ -200,10 +223,52 @@ export default function Personal() {
     vacation: "warning",
   };
 
-  const renderCell = React.useCallback((user: Usuario, columnKey: React.Key) => {
+  const deleteUser = async (user: Usuario) => {
+    toast.promise(
+      new Promise(async (resolve) => {
+        const _deleteUser = async () => {
+          const response = await fetch("/api/users/delete", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ id: user.id }),
+          }).then((res) => res.json());
+
+          if (response.status === 200) {
+            const newUsers = users.filter((u) => u.id !== user.id);
+            setUsers(newUsers);
+            setFilteredItems(newUsers);
+            resolve(true);
+          } else {
+            resolve(false);
+          }
+        }
+
+        await _deleteUser();
+      }),
+      {
+        loading: 'Eliminando usuario...',
+        success: 'Usuario eliminado con exito',
+        error: 'Error al eliminar usuario'
+      },
+    );
+
+    // reloadUsers();
+  }
+
+  const renderCell = React.useCallback((user: Usuario, columnKey: Column) => {
     // const cellValue = user[columnKey as keyof User];
 
-    switch (columnKey) {
+    const dateToSring = (date: Fecha) => {
+
+      return date.year + "/" + date.month + "/" + date.day;
+
+      // const d = new Date(date);
+      // return d.toLocaleDateString();
+    }
+
+    switch (columnKey.uid) {
       case "persona":
         return (
           <User
@@ -217,7 +282,7 @@ export default function Personal() {
       case "role":
         return (
           <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
+            <p className="text-bold text-small capitalize">rol</p>
             <p className="text-bold text-tiny capitalize text-default-400">{user.Apellidos}</p>
           </div>
         );
@@ -229,21 +294,62 @@ export default function Personal() {
         );
       case "actions":
         return (
-          <div className="relative flex justify-end items-center gap-2">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <DotsVerticalIcon className="text-default-900" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem>View</DropdownItem>
-                <DropdownItem>Edit</DropdownItem>
-                <DropdownItem>Delete</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
+          <div className="relative flex items-center gap-2">
+            <Tooltip content="Detalles">
+              <span className="text-9xl text-default-400 cursor-pointer active:opacity-50">
+                <EyeOpenIcon
+                  onClick={() => {
+                    setUserToViewOrEdit(user);
+                    onOpenChange();
+                    setMode("view");
+                  }}
+                />
+              </span>
+            </Tooltip>
+            <Tooltip content="Editar Usuario">
+              <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                <Pencil1Icon
+                  onClick={() => {
+                    setUserToViewOrEdit(user);
+                    onOpenChange();
+                    setMode("edit");
+                  }}
+                />
+              </span>
+            </Tooltip>
+            <Tooltip color="danger" content="Eliminar Usuario">
+              <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                <TrashIcon
+                  onClick={() => deleteUser(user)}
+                />
+              </span>
+            </Tooltip>
           </div>
         );
+      case "email":
+        return <p>{user.InformacionPersonal?.correoElectronico}</p>
+      case "numero":
+        return <p>{user.InformacionPersonal?.NumeroTelefonico}</p>
+      case "direccion":
+        return <p>{user.InformacionPersonal?.Direccion}</p>
+      case "clinica":
+        return <p>{user.InformacionMedica?.ClinicaAsignada}</p>
+      case "sangre":
+        return <p>{user.InformacionMedica?.TipoDeSangre}</p>
+      case "nacimiento":
+        {
+          user.InformacionPersonal?.FechaDeNacimiento ? (
+            <p>{dateToSring(user.InformacionPersonal?.FechaDeNacimiento)}</p>
+          ) : (
+            <p>N/A</p>
+          )
+        }
+      case "curp":
+        return <p>{user.InformacionPersonal?.CURP}</p>
+      case "rfc":
+        return <p>{user.InformacionPersonal?.RFC}</p>
+      case "lector":
+        return <p>{user.InformacionPersonal?.ClaveLector}</p>
       default:
         return "N/A";
     }
@@ -251,67 +357,27 @@ export default function Personal() {
 
   return (
     <>
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange}>
+      <Toaster expand={true} />
+      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="5xl" placement="center" scrollBehavior="outside" backdrop="blur">
         <ModalContent>
-          {(onClose) => {
-            <>
+          {(onClose) => (
+            <div>
               <ModalHeader>Agregar nuevo usuario</ModalHeader>
               <ModalBody>
-                <NewPersonForm />
+                <PersonForm isOpen={isOpen} onOpenChange={onOpenChange} user={userToViewOrEdit} mode={mode} />
               </ModalBody>
-              <ModalFooter>
-                <Button color="primary" variant="flat" onPress={onclose}>
-                  Cancelar
-                </Button>
-                <Button color="primary" variant="flat" onPress={onclose}>
-                  Guardar
-                </Button>
-              </ModalFooter>
-            </>
-          }}
+            </div>
+          )}
         </ModalContent>
       </Modal>
-      <Table
-        aria-label="Example table with custom cells, pagination and sorting"
-        isHeaderSticky
-        bottomContent={bottomContent}
-        bottomContentPlacement="outside"
-        classNames={{
-          wrapper: "max-h-[382px]",
-        }}
-        selectedKeys={selectedKeys}
-        selectionMode="multiple"
+      <ItemsTable
+        items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+        loadingContent={loadingUsers}
         topContent={topContent}
-        topContentPlacement="outside"
-        onSelectionChange={setSelectedKeys}
-      >
-        <TableHeader columns={columns}>
-          {(column: Column) => (
-            <TableColumn
-              key={column.uid}
-              align={column.uid === "actions" ? "center" : "start"}
-              allowsSorting={column.sortable}
-            >
-              {column.name}
-            </TableColumn>
-          )}
-        </TableHeader>
-        <TableBody>
-          {
-            filteredItems.map((user) => {
-              return (
-                <TableRow key={user.id}>
-                  {columns.map((column) => (
-                    <TableCell key={column.uid}>
-                      {renderCell(user, column.uid)}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              );
-            })
-          }
-        </TableBody>
-      </Table>
+        bottomContent={bottomContent}
+        renderCell={renderCell}
+        columns={columns}
+      />
     </>
   );
 
