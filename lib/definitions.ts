@@ -1,4 +1,4 @@
-interface Date {
+export interface Date {
   year: number;
   month: number;
   day: number;
@@ -81,10 +81,39 @@ export const usersColumns = [
   // { name: "Edad", uid: "edad", sortable: true },
   // { name: "Rol", uid: "rol", sortable: true },
   // { name: "ESTADO", uid: "estado", sortable: true },
-  // { name: "Correo Electronico", uid: "email" },
-  // { name: "Numero Telefonico", uid: "numero" },
+  { name: "Correo Electronico", uid: "email" },
+  { name: "Numero Telefonico", uid: "numero" },
+  { name: "Direccion", uid: "direccion" },
+  { name: "Clinica Asignada", uid: "clinica" },
+  { name: "Tipo de Sangre", uid: "sangre" },
+  { name: "Fecha de Nacimiento", uid: "nacimiento" },
+  { name: "CURP", uid: "curp" },
+  { name: "RFC", uid: "rfc" },
+  { name: "Clabe de Lector", uid: "lector" },
   { name: "Actions", uid: "actions" },
 ];
 
 // Export column type
 export type Column = (typeof usersColumns)[number];
+
+export type Product = {
+  ProductID: string;
+  ProductName: string;
+  SupplierID: string;
+  QuantityInStock: number;
+  ReorderLevel: number;
+  UnitPrice: number;
+  Location: string;
+};
+
+export type Supplier = {
+  SupplierID: string;
+  SupplierName: string;
+  ContactName: string;
+  Address: string;
+  City: string;
+  PostalCode: string;
+  Country: string;
+  Phone: string;
+  Mail: string;
+};
