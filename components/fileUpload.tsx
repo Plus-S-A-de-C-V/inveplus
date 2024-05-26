@@ -11,6 +11,7 @@ export default function FileInput({
   acceptedFileTypes,
   onFileChange,
   isValid,
+  name,
 }: any) {
   const [file, setFile] = React.useState(null);
 
@@ -81,6 +82,7 @@ export default function FileInput({
             </p>
           </div>
           <input
+            name={name}
             id={id}
             type="file"
             className="hidden"

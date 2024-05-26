@@ -18,6 +18,8 @@ import {
 } from "@nextui-org/react";
 
 import React, { useRef } from "react";
+import { FormEvent } from 'react'
+
 
 import { MagnifyingGlassIcon, FileIcon, HeartIcon, PersonIcon, HomeIcon, MobileIcon, EnvelopeOpenIcon, DrawingPinFilledIcon, CheckIcon } from '@radix-ui/react-icons'
 
@@ -28,9 +30,17 @@ import FileInput from "@/components/fileUpload";
 
 const DefaultUser = "https://www.gravatar.com/avatar/?d=mp&s=256";
 import { z } from "zod";
+import { Usuario } from "@/lib/definitions";
 const bcrypt = require("bcryptjs");
 
-export default function PersonForm() {
+interface formProps {
+  isOpen: boolean;
+  onOpenChange: (isOpen: boolean) => void;
+  mode: "create" | "edit" | "view";
+  user?: Usuario;
+}
+
+export default function PersonForm({ isOpen, onOpenChange, mode, user }: formProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [nombre, setNombre] = React.useState("");
   const [nombreIsValid, setNombreIsValid] = React.useState(true);
@@ -72,7 +82,7 @@ export default function PersonForm() {
   const [tipoSangre, setSangre] = React.useState("");
   const [sangreIsValid, setSangreIsValid] = React.useState(true);
 
-  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  // const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   const handleFileChange = (event: any) => {
     if (event.target.files && event.target.files[0]) {
@@ -198,11 +208,16 @@ export default function PersonForm() {
     return re.test(phone);
   };
 
-  const handleSubmit = async () => {
-    console.log("Submitting");
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    const response = await fetch("/api/usuarios/new", {
+      method: "POST",
+      body: formData,
+    });
 
 
-  };
+  }
 
   const tiposDeSangre = [
     { label: "A+", value: "A+" },
@@ -220,7 +235,7 @@ export default function PersonForm() {
     // where it's the user photo, first and last name
     <div className="w-full flex flex-col">
       <form
-        action={handleSubmit}
+        onSubmit={handleSubmit}
       >
 
         <div className="w-full">
@@ -231,6 +246,7 @@ export default function PersonForm() {
                 <div className="flex items-center justify-center">
                   <Card isFooterBlurred radius="lg" className="border-none">
                     <input
+                      name="profilePic"
                       id="profilePic"
                       type="file"
                       className="hidden"
@@ -249,28 +265,34 @@ export default function PersonForm() {
                       fallbackSrc={DefaultUser}
                       width={256}
                     />
-                    <CardFooter className="justify-center before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                      <Button
-                        className="text-primary-900 text-lg"
-                        variant="flat"
-                        color="default"
-                        radius="lg"
-                        size="sm"
-                      >
-                        <label htmlFor="profilePic">Editar Fotografia</label>
-                      </Button>
-                    </CardFooter>
+                    {
+                      (mode === "edit" || mode === "create") && (
+                        <CardFooter className="justify-center before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
+                          <Button
+                            className="text-primary-900 text-lg"
+                            variant="flat"
+                            color="default"
+                            radius="lg"
+                            size="sm"
+                          >
+                            <label htmlFor="profilePic">Editar Fotografia</label>
+                          </Button>
+                        </CardFooter>
+                      )
+                    }
                   </Card>
                 </div>
               </div>
               <div className="flex flex-row w-full">
                 <Input
-                  isClearable
-                  isRequired
+                  name="nombre"
+                  isClearable={mode === "create" || mode === "edit"}
+                  isRequired={mode === "create"}
+                  isReadOnly={mode === "view"}
+                  value={mode === "create" ? nombre : user?.Nombre}
                   type="text"
                   label="Nombre"
                   placeholder="Escribe el nombre de la nueva persona..."
-                  value={nombre}
                   onValueChange={setNombre}
                   isInvalid={!nombreIsValid}
                   id="nombre"
@@ -278,36 +300,42 @@ export default function PersonForm() {
                 />
                 <Spacer x={3} />
                 <Input
-                  isClearable
-                  isRequired
+                  name="apellidos"
+                  isClearable={mode === "create" || mode === "edit"}
+                  isRequired={mode === "create"}
+                  isReadOnly={mode === "view"}
+                  value={mode === "create" ? apellidos : user?.Apellidos}
                   type="text"
                   label="Apellidos"
                   placeholder="Escribe los apellidos de la nueva persona..."
-                  value={apellidos}
                   onValueChange={setApellidos}
                   isInvalid={!apellidosIsValid}
                   id="apellidos"
                   ref={inputRef}
                 />
               </div>
-              <Card className="w-full my-2 bg-default-100 p-2 " shadow="none">
-                <div className="flex flex-row w-full">
-                  <div className="flex flex-col gap-1 w-11/12">
-                    <p className="text-medium">
-                      ¿Habilitar como usuario del sistema?
-                    </p>
-                    <p className="text-tiny text-default-400">
-                      Al habilitarlo, el usuario podra acceder a este sistema, una
-                      contraseña de inicio de sesión es necesaria.
-                    </p>
-                  </div>
-                  <Switch
-                    isSelected={isSystemUser}
-                    onValueChange={setSystemUser}
-                    aria-label="Usuario del Sistema"
-                  />
-                </div>
-              </Card>
+              {
+                (mode === "edit" || mode === "create") && (
+                  <Card className="w-full my-2 bg-default-100 p-2 " shadow="none">
+                    <div className="flex flex-row w-full">
+                      <div className="flex flex-col gap-1 w-11/12">
+                        <p className="text-medium">
+                          ¿Habilitar como usuario del sistema?
+                        </p>
+                        <p className="text-tiny text-default-400">
+                          Al habilitarlo, el usuario podra acceder a este sistema, una
+                          contraseña de inicio de sesión es necesaria.
+                        </p>
+                      </div>
+                      <Switch
+                        isSelected={isSystemUser}
+                        onValueChange={setSystemUser}
+                        aria-label="Usuario del Sistema"
+                      />
+                    </div>
+                  </Card>
+                )
+              }
               {isSystemUser && (
                 <Input
                   isClearable
@@ -330,7 +358,11 @@ export default function PersonForm() {
           <div className="flex-row flex-wrap grid md:grid-cols-1 lg:grid-cols-2">
             <Input
               // isClearable
-              isRequired
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? fechaDeNacimiento : user?.InformacionPersonal?.FechaDeNacimiento}
+              name="fechaDeNacimiento"
               type="date"
               label="Fecha de Nacimiento"
               labelPlacement="outside-left"
@@ -340,14 +372,16 @@ export default function PersonForm() {
               max={new Date().toISOString().split("T")[0]}
               min={"1900-01-01"}
               onValueChange={setFecha}
-              value={fechaDeNacimiento}
               color={fechaDeNacimientoIsValid ? "default" : "danger"}
               ref={inputRef}
             />
 
             <Input
-              isClearable
-              isRequired
+              name="curp"
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? curp : user?.InformacionPersonal?.CURP}
               type="text"
               label="CURP"
               placeholder="Escribe el CURP de la nueva persona..."
@@ -355,14 +389,17 @@ export default function PersonForm() {
               startContent={
                 <MagnifyingGlassIcon className="w-5 h-5 text-default-400" />
               }
-              value={curp}
               onValueChange={setCurp}
               isInvalid={!curpIsValid}
               id="curp"
               ref={inputRef}
             />
             <Input
-              isClearable
+              name="rfc"
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? rfc : user?.InformacionPersonal?.RFC}
               // isRequired
               type="text"
               label="RFC"
@@ -371,13 +408,13 @@ export default function PersonForm() {
               startContent={
                 <FileIcon className="w-5 h-5 text-default-400" />
               }
-              value={rfc}
               onValueChange={setRfc}
               isInvalid={!rfcIsValid}
               id="rfc"
               ref={inputRef}
             />
-            <Input
+            {/* <Input
+              name="nss"
               isClearable
               // isRequired
               type="text"
@@ -390,10 +427,13 @@ export default function PersonForm() {
               isInvalid={!nssIsInvalid}
               id="nss"
               ref={inputRef}
-            />
+            /> */}
             <Input
-              isClearable
-              isRequired
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? claveLector : user?.InformacionPersonal?.ClaveLector}
+              name="claveLector"
               type="text"
               label="Clave de Lector"
               placeholder="Escribe la Clave de Lector de la nueva persona..."
@@ -401,21 +441,22 @@ export default function PersonForm() {
               startContent={
                 <PersonIcon className="w-5 h-5 text-default-400" />
               }
-              value={claveLector}
               onValueChange={setClaveLector}
               isInvalid={!claveLectorIsValid}
               id="claveLector"
               ref={inputRef}
             />
             <Input
-              isClearable
-              isRequired
+              name="direccion"
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? direccion : user?.InformacionPersonal?.Direccion}
               type="text"
               label="Dirección"
               placeholder="Escribe la dirección de la nueva persona..."
               className="p-2 w-full"
               startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
-              value={direccion}
               onValueChange={setDireccion}
               isInvalid={!direccionIsValid}
               id="direccion"
@@ -423,8 +464,11 @@ export default function PersonForm() {
             />
 
             <Input
-              isClearable
-              isRequired
+              name="numeroTelefonico"
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? numeroTelefonico : user?.InformacionPersonal?.NumeroTelefonico}
               type="text"
               label="Numero de Contacto"
               placeholder="Escribe el numero de contacto de la nueva persona..."
@@ -432,21 +476,22 @@ export default function PersonForm() {
               startContent={
                 <MobileIcon className="w-5 h-5 text-default-400" />
               }
-              value={numeroTelefonico}
               onValueChange={setNumeroTelefonico}
               isInvalid={!numeroTelefonicoIsValid}
               id="numeroTelefonico"
               ref={inputRef}
             />
             <Input
-              isClearable
-              isRequired
+              name="email"
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? email : user?.InformacionPersonal?.correoElectronico}
               type="email"
               label="Correo Electronico"
               placeholder="Escribe el correo electronico de la nueva persona..."
               className="p-2 w-full"
               startContent={<EnvelopeOpenIcon className="w-5 h-5 text-default-400" />}
-              value={email}
               onValueChange={setEmail}
               isInvalid={!emailIsValid}
               id="email"
@@ -456,6 +501,7 @@ export default function PersonForm() {
 
           <div className="flex-row flex-wrap grid md:grid-cols-2 lg:grid.cols-2 gap-3">
             <FileInput
+              name="fileINE"
               title="Cargar INE"
               acceptedFileTypesText="PDF Unicamente"
               acceptedFileTypes={"application/pdf"}
@@ -465,6 +511,7 @@ export default function PersonForm() {
               isValid={fileIneIsValid}
             />
             <FileInput
+              name="fileConstancia"
               title="Cargar Constancia de Situacion Fiscal"
               acceptedFileTypesText="PDF Unicamente"
               acceptedFileTypes={"application/pdf"}
@@ -474,6 +521,7 @@ export default function PersonForm() {
               isValid={fileConstanciaIsValid}
             />
             <FileInput
+              name="fileAsignacion"
               title="Cargar Asignación de Numero de Seguro Social"
               acceptedFileTypesText="PDF Unicamente"
               acceptedFileTypes={"application/pdf"}
@@ -483,6 +531,7 @@ export default function PersonForm() {
               isValid={fileAsignacionIsValid}
             />
             <FileInput
+              name="fileCURP"
               title="Cargar CURP"
               acceptedFileTypesText="PDF Unicamente"
               acceptedFileTypes={"application/pdf"}
@@ -509,14 +558,17 @@ export default function PersonForm() {
           <p className="text-3xl mr-auto my-2 font-bold">Información Medica</p>
           <div className="flex-row flex-wrap grid md:grid-cols-1 lg:grid-cols-2">
             <Input
-              isClearable
+              name="clinica"
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? clinica : user?.InformacionMedica?.ClinicaAsignada}
               // isRequired
               type="text"
               label="Clinica Asignada"
               placeholder="Escribe la Clinica Asignada de la nueva persona..."
               className="p-2 w-full"
               startContent={<HomeIcon className="w-5 h-5 text-default-400" />}
-              value={clinica}
               onValueChange={setClinica}
               isInvalid={!clinicaIsValid}
               id="clinica"
@@ -537,14 +589,17 @@ export default function PersonForm() {
             isInvalid={!sangreIsValid}
           /> */}
             <Select
+              name="tipoSangre"
+              // isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              // isReadOnly={mode === "view"}
+              value={mode === "create" ? tipoSangre : user?.InformacionMedica?.TipoDeSangre}
               className="p-2 w-full"
               label="Tipo de Sangre"
               placeholder="Selecciona el tipo de sangre..."
-              isRequired
               startContent={
                 <DrawingPinFilledIcon className="w-5 h-5 text-default-400" />
               }
-              value={tipoSangre}
               onChange={(e) => setSangre(e.target.value)}
               isInvalid={!sangreIsValid}
               id="sangre"
@@ -565,7 +620,8 @@ export default function PersonForm() {
             startContent={<CheckIcon className="h-6 w-6" />}
             type="submit"
           >
-            Crear Usuario
+            {
+              mode === "create" ? "Crear Usuario" : mode === "edit" ? "Guardar Cambios" : "Cerrar"}
           </Button>
         </div>
 
