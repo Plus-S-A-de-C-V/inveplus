@@ -14,7 +14,7 @@ const ACCOUNT_EMAIL = process.env.ACCOUNT_EMAIL || "";
 //import { S3 } from "@aws-sdk/client-s3";
 import S3 from "aws-sdk/clients/s3.js";
 
-import { Usuario } from "@/lib/definitions";
+import { Usuario, Product, Supplier } from "@/lib/definitions";
 
 import Cloudflare from "cloudflare";
 
@@ -38,7 +38,6 @@ export async function getUsers() {
   const data = await response[0];
 
   if (!data.success) {
-    console.error("Failed to fetch data: ", data);
     return null;
   }
 
@@ -73,7 +72,6 @@ export async function getUser(id: string) {
   const data = await response[0];
 
   if (!data.success) {
-    console.error("Failed to fetch data: ", data);
     return null;
   }
 
@@ -125,9 +123,12 @@ export async function addUser(user: Usuario) {
 
 export async function updateUser(user: Usuario) {
   // Check if the user exists
-  const userToUpdate = await getUser(user.id);
-  if (!userToUpdate) {
-    console.error("Failed to update user: User not found");
+  try {
+    if (!(await getUser(user.id))) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
     return null;
   }
 
@@ -152,9 +153,14 @@ export async function updateUser(user: Usuario) {
 export async function deleteUser(id: string) {
   // first delete the user in the user table
 
-  const userToDelete = await getUser(id);
-  if (!userToDelete) {
-    console.error("Failed to delete user: User not found");
+  let userToDelete;
+  try {
+    userToDelete = await getUser(id);
+    if (!userToDelete) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
     return null;
   }
 
@@ -167,19 +173,271 @@ export async function deleteUser(id: string) {
     deleteObject(userToDelete.DocumentosPersonales.CURP);
   }
 
-  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `DELETE FROM InformacionMedica WHERE UsuarioId = "${id}"`,
-  });
+  // await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+  //   sql: `DELETE FROM InformacionMedica WHERE UsuarioId = "${id}"`,
+  // });
 
-  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `DELETE FROM InformacionPersonal WHERE UsuarioId = "${id}"`,
-  });
+  // await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+  //   sql: `DELETE FROM InformacionPersonal WHERE UsuarioId = "${id}"`,
+  // });
 
   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
     sql: `DELETE FROM Usuario WHERE Id = "${id}"`,
   });
 
   return userToDelete;
+}
+
+/*
+  Add, Update, Delete Products
+*/
+
+export async function getProducts() {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: "SELECT * FROM Inventory",
+  });
+
+  const data = await response[0];
+
+  if (!data.success) {
+    return null;
+  }
+
+  const result = data.results;
+
+  let products: Product[] = [];
+
+  if (result) {
+    products = result.map((product: any) => {
+      return {
+        ProductID: product.ProductID,
+        ProductName: product.ProductName,
+        SupplierID: product.SupplierID,
+        QuantityInStock: product.QuantityInStock,
+        ReorderLevel: product.ReorderLevel,
+        UnitPrice: product.UnitPrice,
+        Location: product.Location,
+      };
+    });
+  }
+
+  return products;
+}
+
+export async function getProduct(id: string) {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `SELECT * FROM Inventory WHERE ProductID = "${id}"`,
+  });
+
+  const data = await response[0];
+  if (!data.success) {
+    return null;
+  }
+
+  const _resultArray = data.results;
+  if (!_resultArray) {
+    return null;
+  }
+
+  const _result = _resultArray[0];
+
+  if (!_result) {
+    return null;
+  }
+
+  const result = _result;
+
+  const product: Product = {
+    ProductID: result.ProductID,
+    ProductName: result.ProductName,
+    SupplierID: result.SupplierID,
+    QuantityInStock: result.QuantityInStock,
+    ReorderLevel: result.ReorderLevel,
+    UnitPrice: result.UnitPrice,
+    Location: result.Location,
+  };
+
+  return product;
+}
+
+export async function addProduct(product: Product) {
+  // first add the product to the product table
+
+  const res = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `INSERT INTO Inventory (ProductID, ProductName, SupplierID, QuantityInStock, ReorderLevel, UnitPrice, Location) VALUES ("${product.ProductID}", "${product.ProductName}", "${product.SupplierID}", "${product.QuantityInStock}", "${product.ReorderLevel}", "${product.UnitPrice}", "${product.Location}");`,
+  });
+  return product;
+}
+
+export async function updateProduct(product: Product) {
+  // Check if the product exists
+  let productToUpdate;
+  try {
+    productToUpdate = await getProduct(product.ProductID);
+    if (!productToUpdate) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+
+  // first update the product in the product table
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `UPDATE Inventory SET ProductName = "${product.ProductName}", SupplierID = "${product.SupplierID}", QuantityInStock = "${product.QuantityInStock}", ReorderLevel = "${product.ReorderLevel}", UnitPrice = "${product.UnitPrice}", Location = "${product.Location}" WHERE ProductID = "${product.ProductID}"`,
+  });
+
+  return product;
+}
+
+export async function deleteProduct(id: string) {
+  // first delete the product in the product table
+
+  let productToDelete;
+  try {
+    productToDelete = await getProduct(id);
+    if (!productToDelete) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `DELETE FROM Inventory WHERE ProductID = "${id}"`,
+  });
+
+  return productToDelete;
+}
+
+/*
+  Add, Update, Delete Suppliers
+*/
+
+export async function getSuppliers() {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: "SELECT * FROM Supplier",
+  });
+
+  const data = await response[0];
+
+  if (!data.success) {
+    return null;
+  }
+
+  const result = data.results;
+
+  let suppliers: Supplier[] = [];
+
+  if (result) {
+    suppliers = result.map((supplier: any) => {
+      return {
+        SupplierID: supplier.SupplierID,
+        SupplierName: supplier.SupplierName,
+        ContactName: supplier.ContactName,
+        Address: supplier.Address,
+        City: supplier.City,
+        PostalCode: supplier.PostalCode,
+        Country: supplier.Country,
+        Phone: supplier.Phone,
+        Mail: supplier.Mail,
+      };
+    });
+  }
+
+  return suppliers;
+}
+
+export async function getSupplier(id: string) {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `SELECT * FROM Supplier WHERE SupplierID = "${id}"`,
+  });
+
+  const data = await response[0];
+
+  if (!data.success) {
+    return null;
+  }
+
+  const _resultArray = data.results;
+  if (!_resultArray) {
+    return null;
+  }
+
+  const _result = _resultArray[0];
+
+  if (!_result) {
+    return null;
+  }
+
+  const result = _result;
+
+  const supplier: Supplier = {
+    SupplierID: result.SupplierID,
+    SupplierName: result.SupplierName,
+    ContactName: result.ContactName,
+    Address: result.Address,
+    City: result.City,
+    PostalCode: result.PostalCode,
+    Country: result.Country,
+    Phone: result.Phone,
+    Mail: result.Mail,
+  };
+
+  return supplier;
+}
+
+export async function addSupplier(supplier: Supplier) {
+  // first add the supplier to the supplier table
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `INSERT INTO Supplier (SupplierID, SupplierName, ContactName, Address, City, PostalCode, Country, Phone, Mail) VALUES ("${supplier.SupplierID}", "${supplier.SupplierName}", "${supplier.ContactName}", "${supplier.Address}", "${supplier.City}", "${supplier.PostalCode}", "${supplier.Country}", "${supplier.Phone}", "${supplier.Mail}");`,
+  });
+
+  return supplier;
+}
+
+export async function updateSupplier(supplier: Supplier) {
+  // Check if the supplier exists
+  let supplierToUpdate;
+  try {
+    supplierToUpdate = await getSupplier(supplier.SupplierID);
+    if (!supplierToUpdate) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+
+  // first update the supplier in the supplier table
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `UPDATE Supplier SET SupplierName = "${supplier.SupplierName}", ContactName = "${supplier.ContactName}", Address = "${supplier.Address}", City = "${supplier.City}", PostalCode = "${supplier.PostalCode}", Country = "${supplier.Country}", Phone = "${supplier.Phone}", Mail = "${supplier.Mail}" WHERE SupplierID = "${supplier.SupplierID}"`,
+  });
+
+  return supplier;
+}
+
+export async function deleteSupplier(id: string) {
+  // first delete the supplier in the supplier table
+
+  let supplierToDelete;
+  try {
+    supplierToDelete = await getSupplier(id);
+    if (!supplierToDelete) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `DELETE FROM Supplier WHERE SupplierID = "${id}"`,
+  });
+
+  return supplierToDelete;
 }
 
 export async function getObjects() {

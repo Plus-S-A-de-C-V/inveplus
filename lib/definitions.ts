@@ -117,3 +117,33 @@ export type Supplier = {
   Phone: string;
   Mail: string;
 };
+
+export type FactorDeSuelo = {
+  id: string;
+  nombre: string;
+  multiplicador: number;
+};
+
+export type Horario = {
+  id: string;
+  nombre: string;
+  multiplicador: string; // id to FactorDeSuelo
+  HoraInicio: Date;
+  HoraFin: Date;
+  ScheduleMonday: boolean;
+  ScheduleTuesday: boolean;
+  ScheduleWednesday: boolean;
+  ScheduleThursday: boolean;
+  ScheduleFriday: boolean;
+  ScheduleSaturday: boolean;
+  ScheduleSunday: boolean;
+};
+
+export type Check = {
+  id: string;
+  horarioId: string; // id to Horario
+  movimiento: number;
+  FechaYHora: Date;
+  UserChecked: string; // id to Usuario
+  UserWhoChecked: string; // id to Usuario
+};
