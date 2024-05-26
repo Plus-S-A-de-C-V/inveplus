@@ -34,52 +34,38 @@ CREATE TABLE IF NOT EXISTS InformacionMedica (
     PRIMARY KEY (UsuarioId),
     FOREIGN KEY (UsuarioId) REFERENCES Usuario(id) ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS FactoresAjusteSueldo (
-    id VARCHAR(255) PRIMARY KEY,
-    Nombre VARCHAR(255),
-    Multiplicador DECIMAL(10, 2) DEFAULT 1
-);
-CREATE TABLE IF NOT EXISTS Horario (
-    id VARCHAR(255) PRIMARY KEY,
-    Nombre VARCHAR(255),
-    Multiplicador VARCHAR(255),
-    -- Assuming this is a foreign key to FactoresAjusteSueldo
-    HoraInicio TIMESTAMP,
-    HoraFin TIMESTAMP,
-    ScheduleMonday BOOLEAN DEFAULT FALSE,
-    ScheduleTuesday BOOLEAN DEFAULT FALSE,
-    ScheduleWednesday BOOLEAN DEFAULT FALSE,
-    ScheduleThursday BOOLEAN DEFAULT FALSE,
-    ScheduleFriday BOOLEAN DEFAULT FALSE,
-    ScheduleSaturday BOOLEAN DEFAULT FALSE,
-    ScheduleSunday BOOLEAN DEFAULT FALSE,
-    FOREIGN KEY (Multiplicador) REFERENCES FactoresAjusteSueldo(Nombre)
-);
+-- CREATE TABLE IF NOT EXISTS FactoresAjusteSueldo (
+--     id VARCHAR(255) PRIMARY KEY,
+--     Nombre VARCHAR(255),
+--     Multiplicador DECIMAL(10, 2) DEFAULT 1
+-- );
+-- CREATE TABLE IF NOT EXISTS Horario (
+--     id VARCHAR(255) PRIMARY KEY,
+--     Nombre VARCHAR(255),
+--     Multiplicador VARCHAR(255),
+--     -- Assuming this is a foreign key to FactoresAjusteSueldo
+--     HoraInicio TIMESTAMP,
+--     HoraFin TIMESTAMP,
+--     ScheduleMonday BOOLEAN DEFAULT FALSE,
+--     ScheduleTuesday BOOLEAN DEFAULT FALSE,
+--     ScheduleWednesday BOOLEAN DEFAULT FALSE,
+--     ScheduleThursday BOOLEAN DEFAULT FALSE,
+--     ScheduleFriday BOOLEAN DEFAULT FALSE,
+--     ScheduleSaturday BOOLEAN DEFAULT FALSE,
+--     ScheduleSunday BOOLEAN DEFAULT FALSE,
+--     FOREIGN KEY (Multiplicador) REFERENCES FactoresAjusteSueldo(Nombre) ON DELETE SET NULL
+-- );
 CREATE TABLE IF NOT EXISTS Checks (
     id VARCHAR(255),
-    Horario VARCHAR(255),
-    -- Assuming this is a foreign key to Horario
+    -- Horario VARCHAR(255),
     Movimiento INT,
     -- 1 = CheckIn, 2 = CheckOut
     FechaYHora TIMESTAMP,
-    UserChecked INT,
-    -- Assuming this is a foreign key to Usuario
-    UserWhoChecked INT,
-    -- Assuming this is a foreign key to Usuario
+    UserChecked VARCHAR(255),
+    -- UserWhoChecked VARCHAR(255),
     PRIMARY KEY (id),
-    FOREIGN KEY (Horario) REFERENCES Horario(Nombre),
-    FOREIGN KEY (UserChecked) REFERENCES Usuario(id),
-    FOREIGN KEY (UserWhoChecked) REFERENCES Usuario(id)
-);
-CREATE TABLE IF NOT EXISTS Inventory (
-    ProductID VARCHAR(255) PRIMARY KEY,
-    ProductName VARCHAR(255) NOT NULL,
-    SupplierID VARCHAR(255) NOT NULL,
-    QuantityInStock INT NOT NULL,
-    ReorderLevel INT NOT NULL,
-    UnitPrice DECIMAL(10, 2) NOT NULL,
-    Location VARCHAR(255) NOT NULL,
-    FOREIGN KEY (SupplierID) REFERENCES Supplier(SupplierID) ON DELETE CASCADE
+    FOREIGN KEY (UserChecked) REFERENCES Usuario(id) ON DELETE CASCADE -- FOREIGN KEY (UserWhoChecked) REFERENCES Usuario(id) ON DELETE SET NULL,
+    -- FOREIGN KEY (Horario) REFERENCES Horario(Nombre) ON DELETE SET NULL
 );
 CREATE TABLE IF NOT EXISTS Supplier (
     SupplierID VARCHAR(255) PRIMARY KEY,
@@ -93,4 +79,13 @@ CREATE TABLE IF NOT EXISTS Supplier (
     Phone VARCHAR(255),
     Mail VARCHAR(255)
 );
--- COMMIT;
+CREATE TABLE IF NOT EXISTS Inventory (
+    ProductID VARCHAR(255) PRIMARY KEY,
+    ProductName VARCHAR(255) NOT NULL,
+    SupplierID VARCHAR(255) NOT NULL,
+    QuantityInStock INT NOT NULL,
+    ReorderLevel INT NOT NULL,
+    UnitPrice DECIMAL(10, 2) NOT NULL,
+    Location VARCHAR(255) NOT NULL,
+    FOREIGN KEY (SupplierID) REFERENCES Supplier(SupplierID) ON DELETE CASCADE
+);

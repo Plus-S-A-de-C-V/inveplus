@@ -141,9 +141,9 @@ export type Horario = {
 
 export type Check = {
   id: string;
-  horarioId: string; // id to Horario
+  userChecked: string; // id to Usuario
   movimiento: number;
   FechaYHora: Date;
-  UserChecked: string; // id to Usuario
-  UserWhoChecked: string; // id to Usuario
+  // UserChecked: string; // id to Usuario
+  // UserWhoChecked: string; // id to Usuario
 };

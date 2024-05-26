@@ -14,7 +14,14 @@ const ACCOUNT_EMAIL = process.env.ACCOUNT_EMAIL || "";
 //import { S3 } from "@aws-sdk/client-s3";
 import S3 from "aws-sdk/clients/s3.js";
 
-import { Usuario, Product, Supplier } from "@/lib/definitions";
+import {
+  Usuario,
+  Product,
+  Supplier,
+  FactorDeSuelo,
+  Horario,
+  Check,
+} from "@/lib/definitions";
 
 import Cloudflare from "cloudflare";
 
@@ -32,7 +39,7 @@ const cloudflare = new Cloudflare({
 
 export async function getUsers() {
   const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: "SELECT * FROM Usuario",
+    sql: "SELECT id FROM Usuario",
   });
 
   const data = await response[0];
@@ -42,29 +49,28 @@ export async function getUsers() {
   }
 
   const result = data.results;
-
   let users: Usuario[] = [];
 
   if (result) {
-    users = result.map((user: any) => {
-      return {
-        id: user.id,
-        Nombre: user.Nombre,
-        Apellidos: user.Apellidos,
-        Foto: user.LINK_Foto,
-        Password: user.Password,
-        InformacionPersonal: undefined,
-        InformacionMedica: undefined,
-        DocumentosPersonales: undefined,
-        Historial: undefined,
-      };
+    const usersPromises = result.map(async (id: any) => {
+      const user = await getUser(id.id);
+      if (user) {
+        return user;
+      }
+
+      // Return an empty object if the user does not exist
+      const emptyUser: Usuario = {} as Usuario;
+      return emptyUser;
     });
+
+    users = await Promise.all(usersPromises);
   }
 
   return users;
 }
 
 export async function getUser(id: string) {
+  // TODO: Return all data from the user
   const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
     sql: `SELECT * FROM Usuario WHERE id = "${id}"`,
   });
@@ -86,8 +92,9 @@ export async function getUser(id: string) {
     return null;
   }
 
-  const result = _result;
-
+  const result = _result as Usuario & {
+    LINK_Foto: string;
+  };
   const user: Usuario = {
     id: result.id,
     Nombre: result.Nombre,
@@ -245,7 +252,7 @@ export async function getProduct(id: string) {
     return null;
   }
 
-  const result = _result;
+  const result = _result as Product;
 
   const product: Product = {
     ProductID: result.ProductID,
@@ -371,7 +378,7 @@ export async function getSupplier(id: string) {
     return null;
   }
 
-  const result = _result;
+  const result = _result as Supplier;
 
   const supplier: Supplier = {
     SupplierID: result.SupplierID,
@@ -484,4 +491,366 @@ export async function uploadObject(objectName: string, object: Buffer) {
     })
     .promise();
   return res;
+}
+
+// export async function getFactors() {
+//   const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: "SELECT * FROM FactoresAjusteSueldo",
+//   });
+
+//   const data = await response[0];
+
+//   if (!data.success) {
+//     return null;
+//   }
+
+//   const result = data.results;
+
+//   let factors: FactorDeSuelo[] = [];
+
+//   if (result) {
+//     factors = result.map((factor: any) => {
+//       return {
+//         id: factor.id,
+//         nombre: factor.nombre,
+//         multiplicador: factor.multiplicador,
+//       };
+//     });
+//   }
+
+//   return factors;
+// }
+
+// export async function getFactor(id: string) {
+//   const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `SELECT * FROM FactoresAjusteSueldo WHERE id = "${id}"`,
+//   });
+
+//   const data = await response[0];
+
+//   if (!data.success) {
+//     return null;
+//   }
+
+//   const _resultArray = data.results;
+//   if (!_resultArray) {
+//     return null;
+//   }
+
+//   const _result = _resultArray[0];
+
+//   if (!_result) {
+//     return null;
+//   }
+
+//   const result = _result;
+
+//   const factor: FactorDeSuelo = {
+//     id: result.id,
+//     nombre: result.nombre,
+//     multiplicador: result.multiplicador,
+//   };
+
+//   return factor;
+// }
+
+// export async function addFactor(factor: FactorDeSuelo) {
+//   // first add the factor to the factor table
+
+//   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `INSERT INTO FactoresAjusteSueldo (id, Nombre, Multiplicador) VALUES ("${factor.id}", "${factor.nombre}", "${factor.multiplicador}");`,
+//   });
+
+//   return factor;
+// }
+
+// export async function updateFactor(factor: FactorDeSuelo) {
+//   // Check if the factor exists
+//   let factorToUpdate;
+//   try {
+//     factorToUpdate = await getFactor(factor.id);
+//     if (!factorToUpdate) {
+//       return null;
+//     }
+//   } catch (e) {
+//     console.log(e);
+//     return null;
+//   }
+
+//   // first update the factor in the factor table
+//   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `UPDATE FactoresAjusteSueldo SET Nombre = "${factor.nombre}", Multiplicador = "${factor.multiplicador}" WHERE id = "${factor.id}"`,
+//   });
+
+//   return factor;
+// }
+
+// export async function deleteFactor(id: string) {
+//   // first delete the factor in the factor table
+
+//   let factorToDelete;
+//   try {
+//     factorToDelete = await getFactor(id);
+//     if (!factorToDelete) {
+//       return null;
+//     }
+//   } catch (e) {
+//     console.log(e);
+//     return null;
+//   }
+
+//   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `DELETE FROM FactoresAjusteSueldo WHERE id = "${id}"`,
+//   });
+
+//   return factorToDelete;
+// }
+
+// export async function getHorarios() {
+//   const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: "SELECT * FROM Horario",
+//   });
+
+//   const data = await response[0];
+
+//   if (!data.success) {
+//     return null;
+//   }
+
+//   const result = data.results;
+
+//   let horarios: Horario[] = [];
+
+//   if (result) {
+//     horarios = result.map((horario: any) => {
+//       return {
+//         id: horario.id,
+//         nombre: horario.nombre,
+//         multiplicador: horario.multiplicador,
+//         HoraInicio: horario.HoraInicio,
+//         HoraFin: horario.HoraFin,
+//         ScheduleMonday: horario.ScheduleMonday,
+//         ScheduleTuesday: horario.ScheduleTuesday,
+//         ScheduleWednesday: horario.ScheduleWednesday,
+//         ScheduleThursday: horario.ScheduleThursday,
+//         ScheduleFriday: horario.ScheduleFriday,
+//         ScheduleSaturday: horario.ScheduleSaturday,
+//         ScheduleSunday: horario.ScheduleSunday,
+//       };
+//     });
+//   }
+
+//   return horarios;
+// }
+
+// export async function getHorario(id: string) {
+//   const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `SELECT * FROM Horario WHERE id = "${id}"`,
+//   });
+
+//   const data = await response[0];
+
+//   if (!data.success) {
+//     return null;
+//   }
+
+//   const _resultArray = data.results;
+//   if (!_resultArray) {
+//     return null;
+//   }
+
+//   const _result = _resultArray[0];
+
+//   if (!_result) {
+//     return null;
+//   }
+
+//   const result = _result;
+
+//   const horario: Horario = {
+//     id: result.id,
+//     nombre: result.nombre,
+//     multiplicador: result.multiplicador,
+//     HoraInicio: result.HoraInicio,
+//     HoraFin: result.HoraFin,
+//     ScheduleMonday: result.ScheduleMonday,
+//     ScheduleTuesday: result.ScheduleTuesday,
+//     ScheduleWednesday: result.ScheduleWednesday,
+//     ScheduleThursday: result.ScheduleThursday,
+//     ScheduleFriday: result.ScheduleFriday,
+//     ScheduleSaturday: result.ScheduleSaturday,
+//     ScheduleSunday: result.ScheduleSunday,
+//   };
+
+//   return horario;
+// }
+
+// export async function addHorario(horario: Horario) {
+//   // first add the horario to the horario table
+
+//   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `INSERT INTO Horario (id, nombre, multiplicador, HoraInicio, HoraFin, ScheduleMonday, ScheduleTuesday, ScheduleWednesday, ScheduleThursday, ScheduleFriday, ScheduleSaturday, ScheduleSunday) VALUES ("${horario.id}", "${horario.nombre}", "${horario.multiplicador}", "${horario.HoraInicio}", "${horario.HoraFin}", "${horario.ScheduleMonday}", "${horario.ScheduleTuesday}", "${horario.ScheduleWednesday}", "${horario.ScheduleThursday}", "${horario.ScheduleFriday}", "${horario.ScheduleSaturday}", "${horario.ScheduleSunday}");`,
+//   });
+
+//   return horario;
+// }
+
+// export async function updateHorario(horario: Horario) {
+//   // Check if the horario exists
+//   let horarioToUpdate;
+//   try {
+//     horarioToUpdate = await getHorario(horario.id);
+//     if (!horarioToUpdate) {
+//       return null;
+//     }
+//   } catch (e) {
+//     console.log(e);
+//     return null;
+//   }
+
+//   // first update the horario in the horario table
+//   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `UPDATE Horario SET nombre = "${horario.nombre}", multiplicador = "${horario.multiplicador}", HoraInicio = "${horario.HoraInicio}", HoraFin = "${horario.HoraFin}", ScheduleMonday = "${horario.ScheduleMonday}", ScheduleTuesday = "${horario.ScheduleTuesday}", ScheduleWednesday = "${horario.ScheduleWednesday}", ScheduleThursday = "${horario.ScheduleThursday}", ScheduleFriday = "${horario.ScheduleFriday}", ScheduleSaturday = "${horario.ScheduleSaturday}", ScheduleSunday = "${horario.ScheduleSunday}" WHERE id = "${horario.id}"`,
+//   });
+
+//   return horario;
+// }
+
+// export async function deleteHorario(id: string) {
+//   // first delete the horario in the horario table
+
+//   let horarioToDelete;
+//   try {
+//     horarioToDelete = await getHorario(id);
+//     if (!horarioToDelete) {
+//       return null;
+//     }
+//   } catch (e) {
+//     console.log(e);
+//     return null;
+//   }
+
+//   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+//     sql: `DELETE FROM Horario WHERE id = "${id}"`,
+//   });
+
+//   return horarioToDelete;
+// }
+
+export async function getChecks() {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: "SELECT id FROM Checks",
+  });
+
+  const data = await response[0];
+
+  if (!data.success) {
+    return null;
+  }
+
+  const result = data.results;
+
+  let checks: Check[] = [];
+
+  if (result) {
+    checks = await Promise.all(
+      result.map(async (check: any) => {
+        const checkObject = await getCheck(check.id);
+        if (checkObject) {
+          return checkObject;
+        }
+
+        const emptyCheck: Check = {} as Check;
+        return emptyCheck;
+      })
+    );
+  }
+
+  return checks;
+}
+
+export async function getCheck(id: string) {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `SELECT * FROM Checks WHERE id = "${id}"`,
+  });
+
+  const data = await response[0];
+
+  if (!data.success) {
+    return null;
+  }
+
+  const _resultArray = data.results;
+  if (!_resultArray) {
+    return null;
+  }
+
+  const _result = _resultArray[0];
+
+  if (!_result) {
+    return null;
+  }
+
+  const result = _result;
+
+  const check: Check = {
+    id: result.id,
+    userChecked: result.UserChecked,
+    movimiento: result.Movimiento,
+    FechaYHora: result.FechaYHora,
+  };
+
+  return check;
+}
+
+export async function addCheck(check: Check) {
+  // first add the check to the check table
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `INSERT INTO Checks (id, Movimiento, FechaYHora, UserChecked) VALUES ("${check.id}", "${check.movimiento}", "${check.FechaYHora}", "${check.userChecked}");`,
+  });
+
+  return check;
+}
+
+export async function updateCheck(check: Check) {
+  // Check if the check exists
+  let checkToUpdate;
+  try {
+    checkToUpdate = await getCheck(check.id);
+    if (!checkToUpdate) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+
+  // first update the check in the check table
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `UPDATE Checks SET Movimiento = "${check.movimiento}", FechaYHora = "${check.FechaYHora}", UserChecked = "${check.userChecked}" WHERE id = "${check.id}"`,
+  });
+
+  return check;
+}
+
+export async function deleteCheck(id: string) {
+  // first delete the check in the check table
+
+  let checkToDelete;
+  try {
+    checkToDelete = await getCheck(id);
+    if (!checkToDelete) {
+      return null;
+    }
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
+
+  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `DELETE FROM Checks WHERE id = "${id}"`,
+  });
+
+  return checkToDelete;
 }
