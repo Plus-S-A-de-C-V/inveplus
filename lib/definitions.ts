@@ -1,14 +1,14 @@
-export interface Date {
-  year: number;
-  month: number;
-  day: number;
+// export interface Date {
+//   year: number;
+//   month: number;
+//   day: number;
 
-  hour?: number;
-  minute?: number;
-  second?: number;
-}
+//   hour?: number;
+//   minute?: number;
+//   second?: number;
+// }
 
-interface InformacionPersonal {
+export interface InformacionPersonal {
   FechaDeNacimiento: Date;
   CURP: string;
   RFC: string;
@@ -19,7 +19,7 @@ interface InformacionPersonal {
   correoElectronico: string;
 }
 
-interface InformacionMedica {
+export interface InformacionMedica {
   ClinicaAsignada: string;
   TipoDeSangre: string;
 }
@@ -36,7 +36,7 @@ interface CambioDeEstado {
   estadoCambiado: Estado;
 }
 
-interface DocumentosPersonales {
+export interface DocumentosPersonales {
   // URL TO S3 OBJECTS, ALL PDFs
   INE: string;
   ConstanciaDeSituacionFiscal: string;
@@ -59,7 +59,8 @@ export interface Usuario {
   InformacionPersonal?: InformacionPersonal;
   InformacionMedica?: InformacionMedica;
   DocumentosPersonales?: DocumentosPersonales;
-  Historial?: Historial;
+  // Historial?: Historial;
+  checks?: Check[];
 }
 
 export const statusOptions = [

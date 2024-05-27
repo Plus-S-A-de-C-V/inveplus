@@ -17,9 +17,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 
-import React, { useRef } from "react";
-import { FormEvent } from 'react'
-
+import React, { FormEvent, useRef } from "react";
 
 import { MagnifyingGlassIcon, FileIcon, HeartIcon, PersonIcon, HomeIcon, MobileIcon, EnvelopeOpenIcon, DrawingPinFilledIcon, CheckIcon } from '@radix-ui/react-icons'
 
@@ -30,8 +28,9 @@ import FileInput from "@/components/fileUpload";
 
 const DefaultUser = "https://www.gravatar.com/avatar/?d=mp&s=256";
 import { z } from "zod";
-import { Usuario } from "@/lib/definitions";
 const bcrypt = require("bcryptjs");
+
+import { Usuario } from "@/lib/definitions";
 
 interface formProps {
   isOpen: boolean;
@@ -209,14 +208,31 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
   };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const response = await fetch("/api/usuarios/new", {
-      method: "POST",
-      body: formData,
-    });
+    if (mode === "view") {
+      onOpenChange(false);
+      return;
+    } else if (mode === "edit") {
+      // TODO: Implement edit user
+    } else if (mode === "create") {
+      event.preventDefault();
+      const formData = new FormData(event.currentTarget);
+      // hash the password and store it in the form data
+      if (isSystemUser) {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        formData.set("password", hashedPassword);
+      }
 
+      const result = await fetch("/api/users/new", {
+        method: "POST",
+        body: formData,
+      });
 
+      if (result.ok) {
+        onOpenChange(false);
+      }
+    } else {
+      onOpenChange(false);
+    }
   }
 
   const tiposDeSangre = [
@@ -235,6 +251,7 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
     // where it's the user photo, first and last name
     <div className="w-full flex flex-col">
       <form
+        // action={handleSubmit}
         onSubmit={handleSubmit}
       >
 
@@ -338,6 +355,7 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
               }
               {isSystemUser && (
                 <Input
+                  name="password"
                   isClearable
                   isRequired
                   type="password"
@@ -361,7 +379,7 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
               isClearable={mode === "create" || mode === "edit"}
               isRequired={mode === "create"}
               isReadOnly={mode === "view"}
-              value={mode === "create" ? fechaDeNacimiento : user?.InformacionPersonal?.FechaDeNacimiento}
+              value={mode === "create" ? fechaDeNacimiento : new Date(user?.InformacionPersonal?.FechaDeNacimiento).toISOString().split("T")[0]}
               name="fechaDeNacimiento"
               type="date"
               label="Fecha de Nacimiento"
@@ -413,21 +431,22 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
               id="rfc"
               ref={inputRef}
             />
-            {/* <Input
+            <Input
               name="nss"
-              isClearable
-              // isRequired
+              isClearable={mode === "create" || mode === "edit"}
+              isRequired={mode === "create"}
+              isReadOnly={mode === "view"}
+              value={mode === "create" ? nss : user?.InformacionPersonal?.NSS}
               type="text"
               label="NSS"
               placeholder="Escribe el NSS de la nueva persona..."
               className="p-2 w-full"
               startContent={<HeartIcon className="w-5 h-5 text-default-400" />}
-              value={nss}
               onValueChange={setNSS}
               isInvalid={!nssIsInvalid}
               id="nss"
               ref={inputRef}
-            /> */}
+            />
             <Input
               isClearable={mode === "create" || mode === "edit"}
               isRequired={mode === "create"}
@@ -499,48 +518,62 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
             />
           </div>
 
-          <div className="flex-row flex-wrap grid md:grid-cols-2 lg:grid.cols-2 gap-3">
-            <FileInput
-              name="fileINE"
-              title="Cargar INE"
-              acceptedFileTypesText="PDF Unicamente"
-              acceptedFileTypes={"application/pdf"}
-              onFileChange={(file: any) => {
-                setFileINE(file);
-              }}
-              isValid={fileIneIsValid}
-            />
-            <FileInput
-              name="fileConstancia"
-              title="Cargar Constancia de Situacion Fiscal"
-              acceptedFileTypesText="PDF Unicamente"
-              acceptedFileTypes={"application/pdf"}
-              onFileChange={(file: any) => {
-                setFileConstancia(file);
-              }}
-              isValid={fileConstanciaIsValid}
-            />
-            <FileInput
-              name="fileAsignacion"
-              title="Cargar Asignación de Numero de Seguro Social"
-              acceptedFileTypesText="PDF Unicamente"
-              acceptedFileTypes={"application/pdf"}
-              Change={(file: any) => {
-                setFileAsignacion(file);
-              }}
-              isValid={fileAsignacionIsValid}
-            />
-            <FileInput
-              name="fileCURP"
-              title="Cargar CURP"
-              acceptedFileTypesText="PDF Unicamente"
-              acceptedFileTypes={"application/pdf"}
-              onFileChange={(file: any) => {
-                setFileCURP(file);
-              }}
-              isValid={fileCURPIsValid}
-            />
-          </div>
+          {
+            mode === "create" && (
+              <div className="flex-row flex-wrap grid md:grid-cols-2 lg:grid.cols-2 gap-3">
+                <FileInput
+                  name="fileINE"
+                  title="Cargar INE"
+                  acceptedFileTypesText="PDF Unicamente"
+                  acceptedFileTypes={"application/pdf"}
+                  onFileChange={(file: any) => {
+                    setFileINE(file);
+                  }}
+                  isValid={fileIneIsValid}
+                />
+                <FileInput
+                  name="fileConstancia"
+                  title="Cargar Constancia de Situacion Fiscal"
+                  acceptedFileTypesText="PDF Unicamente"
+                  acceptedFileTypes={"application/pdf"}
+                  onFileChange={(file: any) => {
+                    setFileConstancia(file);
+                  }}
+                  isValid={fileConstanciaIsValid}
+                />
+                <FileInput
+                  name="fileAsignacion"
+                  title="Cargar Asignación de Numero de Seguro Social"
+                  acceptedFileTypesText="PDF Unicamente"
+                  acceptedFileTypes={"application/pdf"}
+                  onFileChange={(file: any) => {
+                    setFileAsignacion(file);
+                  }}
+                  isValid={fileAsignacionIsValid}
+                />
+                <FileInput
+                  name="fileCURP"
+                  title="Cargar CURP"
+                  acceptedFileTypesText="PDF Unicamente"
+                  acceptedFileTypes={"application/pdf"}
+                  onFileChange={(file: any) => {
+                    setFileCURP(file);
+                  }}
+                  isValid={fileCURPIsValid}
+                />
+                <FileInput
+                  name="comprobanteDomicilio"
+                  title="Cargar Comprobante de Domicilio"
+                  acceptedFileTypesText="PDF Unicamente"
+                  acceptedFileTypes={"application/pdf"}
+                  onFileChange={(file: any) => {
+                    setFileINE(file);
+                  }}
+                  isValid={fileIneIsValid}
+                />
+              </div>
+            )
+          }
           {/* TODO: Add map
           <Map
             initialViewState={{
@@ -588,28 +621,39 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
             onValueChange={setSangre}
             isInvalid={!sangreIsValid}
           /> */}
-            <Select
-              name="tipoSangre"
-              // isClearable={mode === "create" || mode === "edit"}
-              isRequired={mode === "create"}
-              // isReadOnly={mode === "view"}
-              value={mode === "create" ? tipoSangre : user?.InformacionMedica?.TipoDeSangre}
-              className="p-2 w-full"
-              label="Tipo de Sangre"
-              placeholder="Selecciona el tipo de sangre..."
-              startContent={
-                <DrawingPinFilledIcon className="w-5 h-5 text-default-400" />
-              }
-              onChange={(e) => setSangre(e.target.value)}
-              isInvalid={!sangreIsValid}
-              id="sangre"
-            >
-              {tiposDeSangre.map((animal) => (
-                <SelectItem key={animal.value} value={animal.value}>
-                  {animal.label}
-                </SelectItem>
-              ))}
-            </Select>
+            {
+              mode === "view" ? (
+                <>
+                  <div>
+                    <label className="text-lg font-semibold">Tipo de Sangre</label>
+                    <p className="text-lg">{user?.InformacionMedica?.TipoDeSangre}</p>
+                  </div>
+                </>
+              ) : (
+                <Select
+                  name="tipoSangre"
+                  // isClearable={mode === "create" || mode === "edit"}
+                  isRequired={mode === "create"}
+                  // isReadOnly={mode === "view"}
+                  value={mode === "create" ? tipoSangre : user?.InformacionMedica?.TipoDeSangre}
+                  className="p-2 w-full"
+                  label="Tipo de Sangre"
+                  placeholder="Selecciona el tipo de sangre..."
+                  startContent={
+                    <DrawingPinFilledIcon className="w-5 h-5 text-default-400" />
+                  }
+                  onChange={(e) => setSangre(e.target.value)}
+                  isInvalid={!sangreIsValid}
+                  id="sangre"
+                >
+                  {tiposDeSangre.map((animal) => (
+                    <SelectItem key={animal.value} value={animal.value}>
+                      {animal.label}
+                    </SelectItem>
+                  ))}
+                </Select>
+              )
+            }
           </div>
         </div>
         <Divider className="my-4" />
@@ -621,7 +665,8 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
             type="submit"
           >
             {
-              mode === "create" ? "Crear Usuario" : mode === "edit" ? "Guardar Cambios" : "Cerrar"}
+              mode === "create" ? "Crear Usuario" : mode === "edit" ? "Guardar Cambios" : "Cerrar"
+            }
           </Button>
         </div>
 

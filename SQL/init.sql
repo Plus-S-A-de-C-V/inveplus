@@ -15,6 +15,7 @@ CREATE TABLE IF NOT EXISTS InformacionPersonal (
     --ISO 8601
     CURP VARCHAR(255),
     RFC VARCHAR(255),
+    NSS VARCHAR(255),
     ClaveLector VARCHAR(255),
     Direccion VARCHAR(255),
     NumeroTelefonico VARCHAR(255),

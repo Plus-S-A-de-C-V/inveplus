@@ -21,6 +21,9 @@ import {
   FactorDeSuelo,
   Horario,
   Check,
+  InformacionPersonal,
+  InformacionMedica,
+  DocumentosPersonales,
 } from "@/lib/definitions";
 
 import Cloudflare from "cloudflare";
@@ -95,16 +98,99 @@ export async function getUser(id: string) {
   const result = _result as Usuario & {
     LINK_Foto: string;
   };
+
+  const user_info = await cloudflare.d1.database.query(
+    ACCOUNT_ID,
+    DATABASE_ID,
+    {
+      sql: `SELECT * FROM InformacionPersonal WHERE UsuarioId = "${id}"`,
+    }
+  );
+
+  const _user_info_data = await user_info[0];
+  if (!_user_info_data.success) {
+    return null;
+  }
+  const _user_info_resultArray = _user_info_data.results;
+  if (!_user_info_resultArray) {
+    return null;
+  }
+  const _user_info_result = _user_info_resultArray[0] as {
+    UsuarioId: string;
+    FechaDeNacimiento: Date;
+    CURP: string;
+    RFC: string;
+    NSS: string;
+    ClaveLector: string;
+    Direccion: string;
+    NumeroTelefonico: string;
+    CorreoElectronico: string;
+    LINK_INE: string;
+    LINK_ConstanciaDeSituacionFiscal: string;
+    LINK_AsignacionDeNSS: string;
+    LINK_ComprobanteDeDominio: string;
+    LINK_CURP: string;
+  };
+
+  const DocumentosPersonales: DocumentosPersonales = {
+    INE: _user_info_result.LINK_INE,
+    ConstanciaDeSituacionFiscal:
+      _user_info_result.LINK_ConstanciaDeSituacionFiscal,
+    AsignacionDeNSS: _user_info_result.LINK_AsignacionDeNSS,
+    ComprobanteDeDomicilio: _user_info_result.LINK_ComprobanteDeDominio,
+    CURP: _user_info_result.LINK_CURP,
+  };
+
+  const InformacionPersona: InformacionPersonal = {
+    CURP: _user_info_result.CURP,
+    RFC: _user_info_result.RFC,
+    NSS: _user_info_result.NSS,
+    ClaveLector: _user_info_result.ClaveLector,
+    Direccion: _user_info_result.Direccion,
+    NumeroTelefonico: _user_info_result.NumeroTelefonico,
+    correoElectronico: _user_info_result.CorreoElectronico,
+    FechaDeNacimiento: _user_info_result.FechaDeNacimiento,
+  };
+
+  const _user_med_info = await cloudflare.d1.database.query(
+    ACCOUNT_ID,
+    DATABASE_ID,
+    {
+      sql: `SELECT * FROM InformacionMedica WHERE UsuarioId = "${id}"`,
+    }
+  );
+
+  const _user_med_info_data = await _user_med_info[0];
+  if (!_user_med_info_data.success) {
+    return null;
+  }
+  const _user_med_info_resultArray = _user_med_info_data.results;
+  if (!_user_med_info_resultArray) {
+    return null;
+  }
+  const _user_med_info_result = _user_med_info_resultArray[0] as {
+    UsuarioId: string;
+    ClinicaAsignada: string;
+    TipoDeSangre: string;
+  };
+
+  const InformacionMedica: InformacionMedica = {
+    ClinicaAsignada: _user_med_info_result.ClinicaAsignada,
+    TipoDeSangre: _user_med_info_result.TipoDeSangre,
+  };
+
+  const userChecks: Check[] = await getUserChecks(id);
+
   const user: Usuario = {
     id: result.id,
     Nombre: result.Nombre,
     Apellidos: result.Apellidos,
     Foto: result.LINK_Foto,
     Password: result.Password,
-    InformacionPersonal: undefined,
-    InformacionMedica: undefined,
-    DocumentosPersonales: undefined,
-    Historial: undefined,
+    InformacionPersonal: InformacionPersona,
+    InformacionMedica: InformacionMedica,
+    DocumentosPersonales: DocumentosPersonales,
+    checks: userChecks,
   };
 
   return user;
@@ -122,7 +208,7 @@ export async function addUser(user: Usuario) {
   });
 
   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `INSERT INTO InformacionPersonal (UsuarioId, FechaDeNacimiento, CURP, RFC, ClaveLector, Direccion, NumeroTelefonico, correoElectronico, LINK_INE, LINK_ConstanciaDeSituacionFiscal, LINK_AsignacionDeNSS, LINK_ComprobanteDeDominio, LINK_CURP) VALUES ("${user.id}", "${user.InformacionPersonal?.FechaDeNacimiento}", "${user.InformacionPersonal?.CURP}", "${user.InformacionPersonal?.RFC}", "${user.InformacionPersonal?.NSS}", "${user.InformacionPersonal?.ClaveLector}", "${user.InformacionPersonal?.Direccion}", "${user.InformacionPersonal?.NumeroTelefonico}", "${user.InformacionPersonal?.correoElectronico}", "${user.DocumentosPersonales?.INE}", "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", "${user.DocumentosPersonales?.AsignacionDeNSS}", "${user.DocumentosPersonales?.CURP}");`,
+    sql: `INSERT INTO InformacionPersonal (UsuarioId, FechaDeNacimiento, CURP, RFC, NSS, ClaveLector, Direccion, NumeroTelefonico, correoElectronico, LINK_INE, LINK_ConstanciaDeSituacionFiscal, LINK_AsignacionDeNSS, LINK_ComprobanteDeDominio, LINK_CURP) VALUES ("${user.id}", "${user.InformacionPersonal?.FechaDeNacimiento}", "${user.InformacionPersonal?.CURP}", "${user.InformacionPersonal?.RFC}", "${user.InformacionPersonal?.NSS}","${user.InformacionPersonal?.NSS}", "${user.InformacionPersonal?.ClaveLector}", "${user.InformacionPersonal?.Direccion}", "${user.InformacionPersonal?.NumeroTelefonico}", "${user.InformacionPersonal?.correoElectronico}", "${user.DocumentosPersonales?.INE}", "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", "${user.DocumentosPersonales?.AsignacionDeNSS}", "${user.DocumentosPersonales?.CURP}");`,
   });
 
   return user;
@@ -151,7 +237,7 @@ export async function updateUser(user: Usuario) {
 
   // then update the user in the InformacionPersonal table
   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `UPDATE InformacionPersonal SET FechaDeNacimiento = "${user.InformacionPersonal?.FechaDeNacimiento}", CURP = "${user.InformacionPersonal?.CURP}", RFC = "${user.InformacionPersonal?.RFC}", ClaveLector = "${user.InformacionPersonal?.ClaveLector}", Direccion = "${user.InformacionPersonal?.Direccion}", NumeroTelefonico = "${user.InformacionPersonal?.NumeroTelefonico}", correoElectronico = "${user.InformacionPersonal?.correoElectronico}", LINK_INE = "${user.DocumentosPersonales?.INE}", LINK_ConstanciaDeSituacionFiscal = "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", LINK_AsignacionDeNSS = "${user.DocumentosPersonales?.AsignacionDeNSS}", LINK_ComprobanteDeDominio = "${user.DocumentosPersonales?.ComprobanteDeDomicilio}", LINK_CURP = "${user.DocumentosPersonales?.CURP}" WHERE UsuarioId = "${user.id}"`,
+    sql: `UPDATE InformacionPersonal SET FechaDeNacimiento = "${user.InformacionPersonal?.FechaDeNacimiento}", CURP = "${user.InformacionPersonal?.CURP}", RFC = "${user.InformacionPersonal?.RFC}", NSS = "${user.InformacionPersonal?.NSS}",ClaveLector = "${user.InformacionPersonal?.ClaveLector}", Direccion = "${user.InformacionPersonal?.Direccion}", NumeroTelefonico = "${user.InformacionPersonal?.NumeroTelefonico}", correoElectronico = "${user.InformacionPersonal?.correoElectronico}", LINK_INE = "${user.DocumentosPersonales?.INE}", LINK_ConstanciaDeSituacionFiscal = "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", LINK_AsignacionDeNSS = "${user.DocumentosPersonales?.AsignacionDeNSS}", LINK_ComprobanteDeDominio = "${user.DocumentosPersonales?.ComprobanteDeDomicilio}", LINK_CURP = "${user.DocumentosPersonales?.CURP}" WHERE UsuarioId = "${user.id}"`,
   });
 
   return user;
@@ -791,7 +877,12 @@ export async function getCheck(id: string) {
     return null;
   }
 
-  const result = _result;
+  const result = _result as {
+    id: string;
+    UserChecked: string;
+    Movimiento: number;
+    FechaYHora: Date;
+  };
 
   const check: Check = {
     id: result.id,
@@ -853,4 +944,36 @@ export async function deleteCheck(id: string) {
   });
 
   return checkToDelete;
+}
+
+export async function getUserChecks(id: string) {
+  const response = await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+    sql: `SELECT id FROM Checks WHERE UserChecked = "${id}"`,
+  });
+
+  const data = await response[0];
+
+  if (!data.success) {
+    return [];
+  }
+
+  const result = data.results;
+
+  let checks: Check[] = [];
+
+  if (result) {
+    checks = await Promise.all(
+      result.map(async (check: any) => {
+        const checkObject = await getCheck(check.id);
+        if (checkObject) {
+          return checkObject;
+        }
+
+        const emptyCheck: Check = {} as Check;
+        return emptyCheck;
+      })
+    );
+  }
+
+  return checks;
 }

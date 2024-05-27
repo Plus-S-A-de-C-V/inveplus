@@ -35,7 +35,6 @@ import {
   INITIAL_VISIBLE_COLUMNS,
   usersColumns as columns,
   Column,
-  Date as Fecha
 } from "@/lib/definitions";
 
 import PersonForm from "@/components/PersonForm";
@@ -61,7 +60,9 @@ export default function Personal() {
   React.useEffect(() => {
     // Get users from api
     const fetchUsers = async () => {
-      const users = await fetch("/api/users").then((res) => res.json());
+      const users = await fetch("/api/users", {
+        cache: "force-cache",
+      }).then((res) => res.json());
       setUsers(users);
       setFilteredItems(users);
       setLoadingUsers(false);
@@ -228,7 +229,7 @@ export default function Personal() {
       new Promise(async (resolve) => {
         const _deleteUser = async () => {
           const response = await fetch("/api/users/delete", {
-            method: "POST",
+            method: "DELETE",
             headers: {
               "Content-Type": "application/json",
             },
@@ -260,12 +261,11 @@ export default function Personal() {
   const renderCell = React.useCallback((user: Usuario, columnKey: Column) => {
     // const cellValue = user[columnKey as keyof User];
 
-    const dateToSring = (date: Fecha) => {
+    const getDateWithouthTime = (date: Date | undefined) => {
+      if (!date) return "N/A"
 
-      return date.year + "/" + date.month + "/" + date.day;
-
-      // const d = new Date(date);
-      // return d.toLocaleDateString();
+      const newDate = new Date(date);
+      return newDate.toDateString();
     }
 
     switch (columnKey.uid) {
@@ -337,13 +337,7 @@ export default function Personal() {
       case "sangre":
         return <p>{user.InformacionMedica?.TipoDeSangre}</p>
       case "nacimiento":
-        {
-          user.InformacionPersonal?.FechaDeNacimiento ? (
-            <p>{dateToSring(user.InformacionPersonal?.FechaDeNacimiento)}</p>
-          ) : (
-            <p>N/A</p>
-          )
-        }
+        return <p>{getDateWithouthTime(user.InformacionPersonal?.FechaDeNacimiento)}</p>
       case "curp":
         return <p>{user.InformacionPersonal?.CURP}</p>
       case "rfc":

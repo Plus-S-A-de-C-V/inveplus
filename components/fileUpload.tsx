@@ -12,6 +12,7 @@ export default function FileInput({
   onFileChange,
   isValid,
   name,
+  isRequired,
 }: any) {
   const [file, setFile] = React.useState(null);
 
