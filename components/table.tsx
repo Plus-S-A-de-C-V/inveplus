@@ -26,14 +26,14 @@ import {
     Modal, ModalContent, ModalHeader, ModalBody, ModalFooter
 } from "@nextui-org/react";
 
-import { Column } from "@/lib/definitions";
+import { Column, ProductColumn } from "@/lib/definitions";
 
 interface Props {
     items: any[];
     loadingContent: boolean;
-    topContent: React.ReactNode;
+    topContent?: React.ReactNode;
     bottomContent: React.ReactNode;
-    renderCell: (item: any, columnKey: Column) => React.ReactNode;
+    renderCell: (item: any, columnKey: any) => React.ReactNode;
     columns: Column[];
 }
 

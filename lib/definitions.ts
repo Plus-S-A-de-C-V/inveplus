@@ -79,6 +79,7 @@ export const INITIAL_VISIBLE_COLUMNS = ["persona", "rol", "numero"];
 
 export const usersColumns = [
   { name: "Nombre", uid: "persona", sortable: true },
+  { name: "ID", uid: "id", sortable: true },
   // { name: "Edad", uid: "edad", sortable: true },
   // { name: "Rol", uid: "rol", sortable: true },
   // { name: "ESTADO", uid: "estado", sortable: true },
@@ -93,6 +94,31 @@ export const usersColumns = [
   { name: "Clabe de Lector", uid: "lector" },
   { name: "Actions", uid: "actions" },
 ];
+
+export const productColumns = [
+  { name: "ID", uid: "id", sortable: true },
+  { name: "Nombre", uid: "name", sortable: true },
+  { name: "Proveedor", uid: "supplier", sortable: true },
+  { name: "En Stock", uid: "stock", sortable: true },
+  { name: "Minimo", uid: "minimo", sortable: true },
+  { name: "Precio", uid: "price", sortable: true },
+  { name: "Ubicación", uid: "loc", sortable: true },
+];
+
+export const supplierColumns = [
+  { name: "ID", uid: "id", sortable: true },
+  { name: "Nombre", uid: "name", sortable: true },
+  { name: "Contacto", uid: "contact", sortable: true },
+  { name: "Dirección", uid: "address", sortable: true },
+  { name: "Ciudad", uid: "city", sortable: true },
+  { name: "Código Postal", uid: "postal", sortable: true },
+  { name: "País", uid: "country", sortable: true },
+  { name: "Teléfono", uid: "phone", sortable: true },
+  { name: "Correo", uid: "mail", sortable: true },
+];
+
+export type ProductColumn = (typeof productColumns)[number];
+export type SupplierColumn = (typeof supplierColumns)[number];
 
 // Export column type
 export type Column = (typeof usersColumns)[number];

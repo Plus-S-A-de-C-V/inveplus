@@ -13,6 +13,10 @@ export const siteConfig = {
       label: "Inventario",
       href: "/inventario",
     },
+    // {
+    //   label: "Provedores",
+    //   href: "/provedores",
+    // },
     {
       label: "Personal",
       href: "/personal",

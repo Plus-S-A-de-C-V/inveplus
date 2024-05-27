@@ -61,7 +61,7 @@ export default function Personal() {
     // Get users from api
     const fetchUsers = async () => {
       const users = await fetch("/api/users", {
-        cache: "force-cache",
+        cache: "reload",
       }).then((res) => res.json());
       setUsers(users);
       setFilteredItems(users);
@@ -344,6 +344,8 @@ export default function Personal() {
         return <p>{user.InformacionPersonal?.RFC}</p>
       case "lector":
         return <p>{user.InformacionPersonal?.ClaveLector}</p>
+      case "id":
+        return <p>{user.id}</p>
       default:
         return "N/A";
     }
