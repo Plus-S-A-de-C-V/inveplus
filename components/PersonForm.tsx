@@ -48,7 +48,7 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
   const [isSystemUser, setSystemUser] = React.useState(false);
   const [password, setPassword] = React.useState("");
   const [passwordIsValid, setPasswordIsValid] = React.useState(true);
-  const [fechaDeNacimiento, setFecha] = React.useState("");
+  const [fechaDeNacimiento, setFecha] = React.useState(new Date());
   const [fechaDeNacimientoIsValid, setFechaIsValid] = React.useState(true);
   const [curp, setCurp] = React.useState("");
   const [curpIsValid, setCurpIsValid] = React.useState(true);
@@ -379,7 +379,9 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
               isClearable={mode === "create" || mode === "edit"}
               isRequired={mode === "create"}
               isReadOnly={mode === "view"}
-              value={mode === "create" ? fechaDeNacimiento : new Date(user?.InformacionPersonal?.FechaDeNacimiento).toISOString().split("T")[0]}
+              value={mode === "create" ? fechaDeNacimiento.toISOString() : (
+                user?.InformacionPersonal?.FechaDeNacimiento !== undefined ? user?.InformacionPersonal?.FechaDeNacimiento.toISOString() : new Date().toISOString()
+              )}
               name="fechaDeNacimiento"
               type="date"
               label="Fecha de Nacimiento"
@@ -389,7 +391,7 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
               id="fechaDeNacimiento"
               max={new Date().toISOString().split("T")[0]}
               min={"1900-01-01"}
-              onValueChange={setFecha}
+              // onValueChange={setFecha}
               color={fechaDeNacimientoIsValid ? "default" : "danger"}
               ref={inputRef}
             />

@@ -45,6 +45,7 @@ import {
 } from "@/lib/definitions";
 
 import { ItemsTable } from "@/components/table";
+import SupplierForm from "@/components/SupplierForm";
 
 import { Toaster, toast } from 'sonner';
 
@@ -59,7 +60,13 @@ export default function Inventario() {
     const [filterValue, setFilterValue] = React.useState<string>("");
 
     const [products, setProducts] = React.useState<Product[]>([]);
+    const [productToViewOrEdit, setProductToViewOrEdit] = React.useState<Product | undefined>(undefined);
     const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
+    const [supplierToViewOrEdit, setSupplierToViewOrEdit] = React.useState<Supplier | undefined>(undefined);
+
+    const { isOpen, onOpen, onOpenChange } = useDisclosure();
+    const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
+
 
     React.useEffect(() => {
         const fetchData = async () => {
@@ -212,6 +219,8 @@ export default function Inventario() {
                         </Button>
                         <Button color="primary" endContent={<PlusIcon />} onPress={() => {
                             // TODO: view items
+                            setMode("create");
+                            onOpen();
                         }}>
                             Agregar nuevo {
                                 selected === "productos" ? "Producto" : "Proveedor"
@@ -298,20 +307,50 @@ export default function Inventario() {
     }, []);
 
     return (
-        <div className="flex w-full flex-col">
-            {topContent}
-            <>
-                <ItemsTable
-                    items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
-                    loadingContent={loadingItems}
-                    bottomContent={bottomContent}
-                    renderCell={renderCell}
-                    columns={
-                        selected === "productos"
-                            ? productColumns
-                            : supplierColumns
-                    } />
-            </>
-        </div>
+        <>
+            <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="5xl" placement="center" scrollBehavior="outside" backdrop="blur">
+                <ModalContent>
+                    {(onClose) => (
+                        <div>
+                            <ModalHeader>
+                                {
+                                    mode === "create" ? "Crear" : mode === "edit" ? "Editar" : "Ver"
+                                } {
+                                    selected === "productos" ? "Producto" : "Proveedor"
+                                }
+                            </ModalHeader>
+                            <ModalBody>
+                                {
+                                    selected === "productos" ? null
+                                        : (
+                                            <SupplierForm
+                                                isOpen={isOpen}
+                                                onOpenChange={onOpenChange}
+                                                mode={mode}
+                                                supplier={supplierToViewOrEdit}
+                                            />
+                                        )
+                                }
+                            </ModalBody>
+                        </div>
+                    )}
+                </ModalContent>
+            </Modal>
+            <div className="flex w-full flex-col">
+                {topContent}
+                <>
+                    <ItemsTable
+                        items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+                        loadingContent={loadingItems}
+                        bottomContent={bottomContent}
+                        renderCell={renderCell}
+                        columns={
+                            selected === "productos"
+                                ? productColumns
+                                : supplierColumns
+                        } />
+                </>
+            </div>
+        </>
     );
 }

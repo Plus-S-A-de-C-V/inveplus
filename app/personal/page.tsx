@@ -358,7 +358,13 @@ export default function Personal() {
         <ModalContent>
           {(onClose) => (
             <div>
-              <ModalHeader>Agregar nuevo usuario</ModalHeader>
+              <ModalHeader>
+                {
+                  mode === "view" ? "Detalles de Usuario" :
+                    mode === "edit" ? "Editar Usuario" :
+                      mode === "create" ? "Crear Usuario" : "Usuario"
+                }
+              </ModalHeader>
               <ModalBody>
                 <PersonForm isOpen={isOpen} onOpenChange={onOpenChange} user={userToViewOrEdit} mode={mode} />
               </ModalBody>
