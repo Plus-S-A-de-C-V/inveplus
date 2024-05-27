@@ -213,7 +213,9 @@ export default function Inventario() {
                         <Button color="primary" endContent={<PlusIcon />} onPress={() => {
                             // TODO: view items
                         }}>
-                            Agregar nuevo usuario
+                            Agregar nuevo {
+                                selected === "productos" ? "Producto" : "Proveedor"
+                            }
                         </Button>
                     </div>
 
