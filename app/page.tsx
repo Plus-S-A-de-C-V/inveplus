@@ -11,8 +11,13 @@ import { Spinner } from "@nextui-org/react";
 
 import { auth } from "@/auth"
 
+import { redirect } from 'next/navigation';
 
 export default async function Home() {
+  // Redirect to Usuarios
+
+  redirect("/personal");
+
   return (
     <div>
       <h1 className="text-7xl">Bienvenido</h1>

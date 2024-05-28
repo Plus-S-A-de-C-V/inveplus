@@ -1,15 +1,16 @@
-import { addProduct } from "@/lib/db";
+import { updateProduct } from "@/lib/db";
 import { Product } from "@/lib/definitions";
-import { nanoid } from "nanoid";
 
-export async function POST(req: Request): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } }
+): Promise<Response> {
   const data = await req.formData();
-
-  data.set("ProductID", `PRD-${nanoid(10)}`);
+  const id = params.id;
 
   const product: Product = {
     Location: data.get("Location")?.toString() || "",
-    ProductID: data.get("ProductID")?.toString() || "",
+    ProductID: id || "",
     ProductName: data.get("ProductName")?.toString() || "",
     SupplierID: data.get("SupplierID")?.toString() || "",
     QuantityInStock: parseInt(data.get("QuantityInStock")?.toString() || "0"),
@@ -20,7 +21,7 @@ export async function POST(req: Request): Promise<Response> {
   console.log(data);
   console.log(product);
 
-  const result = await addProduct(product);
+  const result = await updateProduct(product);
   if (result == null) {
     return new Response("Error adding product", {
       headers: {

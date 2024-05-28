@@ -11,6 +11,7 @@ import {
     TableCell,
     Input,
     Button,
+    ButtonGroup,
     DropdownTrigger,
     Dropdown,
     DropdownMenu,
@@ -45,24 +46,21 @@ import {
 } from "@/lib/definitions";
 
 import { ItemsTable } from "@/components/table";
-import SupplierForm from "@/components/SupplierForm";
+import ProductForm from "@/components/ProductForm";
 
 import { Toaster, toast } from 'sonner';
 
 export default function Inventario() {
-    const [selected, setSelected] = React.useState("productos");
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
     const [page, setPage] = React.useState(1);
     const [pages, setPages] = React.useState(1);
 
-    const [filteredItems, setFilteredItems] = React.useState<Product[] | Supplier[]>([]);
-    const [loadingItems, setLoadingItems] = React.useState(true);
     const [filterValue, setFilterValue] = React.useState<string>("");
 
     const [products, setProducts] = React.useState<Product[]>([]);
+    const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
     const [productToViewOrEdit, setProductToViewOrEdit] = React.useState<Product | undefined>(undefined);
-    const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
-    const [supplierToViewOrEdit, setSupplierToViewOrEdit] = React.useState<Supplier | undefined>(undefined);
+    const [loadingProducts, setLoadingProducts] = React.useState(true);
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
@@ -74,38 +72,27 @@ export default function Inventario() {
         }
 
         fetchData();
-        console.log("Products: ", products);
-        console.log("Suppliers: ", suppliers);
-
     }, []);
 
     const reloadItems = async () => {
         // TODO:! Implement
-        setLoadingItems(true);
+        setLoadingProducts(true);
 
-        const [products, suppliers] = await Promise.all([
-            await fetch("/api/products",
-                {
-                    cache: "reload",
-                    method: "GET",
-                }
-            ).then((res) => res.json()),
-            await fetch("/api/suppliers", {
+        const products = await fetch("/api/products",
+            {
                 cache: "reload",
                 method: "GET",
-            }).then((res) => res.json())
-        ]);
+            }
+        ).then((res) => res.json());
+
 
         setProducts(products);
-        setSuppliers(suppliers);
 
-        if (selected === "productos") {
-            setFilteredItems(products);
-        } else {
-            setFilteredItems(suppliers);
-        }
+        console.log("Products: ", products);
 
-        setLoadingItems(false);
+        setFilteredProducts(products);
+
+        setLoadingProducts(false);
     }
 
     const onClear = React.useCallback(() => {
@@ -116,29 +103,15 @@ export default function Inventario() {
 
         if (!value) {
             setFilterValue("")
-            if (selected === "productos") {
-                setFilteredItems(products)
-            } else {
-                setFilteredItems(suppliers)
-            }
+            setFilteredProducts(products)
             return;
         }
 
-        if (selected === "productos") {
-            const filteredItems = products.filter((product) => {
-                return product.ProductName.toLowerCase().includes(value.toLowerCase());
-            });
-
-            setFilteredItems(filteredItems);
-            setPage(1);
-        } else {
-            const filteredItems = suppliers.filter((supplier) => {
-                return supplier.SupplierName.toLowerCase().includes(value.toLowerCase());
-            });
-
-            setFilteredItems(filteredItems);
-            setPage(1);
-        }
+        const filteredProds = products.filter((product) => {
+            return product.ProductName.toLowerCase().includes(value.toLowerCase());
+        });
+        setFilteredProducts(filteredProds);
+        setPage(1);
 
     }, []);
 
@@ -188,7 +161,6 @@ export default function Inventario() {
         );
     }, []);
 
-
     const topContent = React.useMemo(() => {
         return (
             <div className="flex flex-col gap-4">
@@ -203,28 +175,17 @@ export default function Inventario() {
                             onClear={() => onClear()}
                             onValueChange={onSearchChange}
                         />
-                        <Tabs aria-label="Inventario"
-                            onSelectionChange={setSelected}>
-                            <Tab key="productos" title="Productos">
-                            </Tab>
-                            <Tab key="proveedores" title="Proveedores">
-                            </Tab>
-                        </Tabs>
                     </div>
                     <div className="flex gap-3">
                         <Button color="default" startContent={<ReloadIcon />} onPress={reloadItems} variant="bordered">
-                            {
-                                selected === "productos" ? "Recargar Productos" : "Recargar Proveedores"
-                            }
+                            Recargar Productos
                         </Button>
                         <Button color="primary" endContent={<PlusIcon />} onPress={() => {
                             // TODO: view items
                             setMode("create");
                             onOpen();
                         }}>
-                            Agregar nuevo {
-                                selected === "productos" ? "Producto" : "Proveedor"
-                            }
+                            Agregar Producto
                         </Button>
                     </div>
 
@@ -232,13 +193,7 @@ export default function Inventario() {
 
                 <div className="flex justify-between items-center">
                     {/* <span className="text-default-400 text-small">{users.length} usuarios</span> */}
-                    {
-                        selected === "productos" ? (
-                            <span className="text-default-400 text-small">{products.length} productos</span>
-                        ) : (
-                            <span className="text-default-400 text-small">{suppliers.length} proveedores</span>
-                        )
-                    }
+                    <span className="text-default-400 text-small">{products.length} productos</span>
                     <label className="flex items-center text-default-400 text-small">
                         Filas por pagina:
                         <select
@@ -254,56 +209,130 @@ export default function Inventario() {
 
             </div>
         );
-    }, [selected]);
+    }, [filterValue, products, filteredProducts, page, pages]);
 
-    const renderCell = React.useCallback((item: Product | Supplier, column: ProductColumn | SupplierColumn) => {
-        if (selected === "productos") {
-            const product = item as Product;
+    const deleteProduct = async (user: Product) => {
+        toast.promise(
+            new Promise(async (resolve) => {
+                const _deleteUser = async () => {
+                    const response = await fetch("/api/products/delete/" + user.ProductID, {
+                        method: "DELETE",
+                        headers: {
+                            "Content-Type": "application/json",
+                        },
+                        // body: JSON.stringify({ id: user.ProductID }),
+                    }).then((res) => res.json());
 
-            switch (column.uid) {
-                case "id":
-                    return product.ProductID;
-                case "nombre":
-                    return product.ProductName;
-                case "proveedor":
-                    return product.SupplierID;
-                case "stock":
-                    return product.QuantityInStock;
-                case "minimo":
-                    return product.ReorderLevel;
-                case "precio":
-                    return product.UnitPrice;
-                case "loc":
-                    return product.Location;
-                default:
-                    return "N/A";
-            }
-        } else {
-            const supplier = item as Supplier;
+                    if (response.status === 200) {
+                        const newUsers = products.filter((u) => u.ProductID !== user.ProductID);
+                        setProducts(newUsers);
+                        setFilteredProducts(newUsers);
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
+                }
 
-            switch (column.uid) {
-                case "id":
-                    return supplier.SupplierID;
-                case "nombre":
-                    return supplier.SupplierName;
-                case "contacto":
-                    return supplier.ContactName;
-                case "direccion":
-                    return supplier.Address;
-                case "ciudad":
-                    return supplier.City;
-                case "postal":
-                    return supplier.PostalCode;
-                case "pais":
-                    return supplier.Country;
-                case "telefono":
-                    return supplier.Phone;
-                case "correo":
-                    return supplier.Mail;
-                default:
-                    return "N/A";
-            }
+                await _deleteUser();
+            }),
+            {
+                loading: 'Eliminando producto...',
+                success: 'Producto eliminado con exito',
+                error: 'Error al eliminar producto'
+            },
+        );
+
+        // reloadUsers();
+    }
+
+    const renderCell = React.useCallback((item: Product, column: ProductColumn) => {
+        switch (column.uid) {
+            case "id":
+                return item.ProductID;
+            case "name":
+                return item.ProductName;
+            case "supplier":
+                return item.SupplierID;
+            case "stock":
+                return item.QuantityInStock;
+            case "minimo":
+                return item.ReorderLevel;
+            case "price":
+                return item.UnitPrice;
+            case "loc":
+                return item.Location;
+            case "actions":
+                return (
+                    <div className="relative flex items-center gap-2">
+                        <Tooltip content="Detalles">
+                            <span className="text-9xl text-default-400 cursor-pointer active:opacity-50">
+                                <EyeOpenIcon
+                                    onClick={() => {
+                                        setProductToViewOrEdit(item);
+                                        onOpenChange();
+                                        setMode("view");
+                                    }}
+                                />
+                            </span>
+                        </Tooltip>
+                        <Tooltip content="Editar Usuario">
+                            <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
+                                <Pencil1Icon
+                                    onClick={() => {
+                                        setProductToViewOrEdit(item);
+                                        onOpenChange();
+                                        setMode("edit");
+                                    }}
+                                />
+                            </span>
+                        </Tooltip>
+                        <Tooltip color="danger" content="Eliminar Usuario">
+                            <span className="text-lg text-danger cursor-pointer active:opacity-50">
+                                <TrashIcon
+                                    onClick={() => deleteProduct(item)}
+                                />
+                            </span>
+                        </Tooltip>
+                    </div>
+                );
+            default:
+                return "N/A";
         }
+        // if (selected === "productos") {
+        //     console.log("Product: ", item);
+        //     console.log("Column: ", column);
+        //     const product = item as Product;
+
+
+        //     }
+        // } else {
+        //     console.log("Supplier: ", item);
+        //     console.log("Column: ", column);
+        //     const supplier = item as Supplier;
+
+        //     switch (column.uid) {
+        //         case "id":
+        //             return supplier.SupplierID;
+        //         case "name":
+        //             return supplier.SupplierName;
+        //         case "contact":
+        //             return supplier.ContactName;
+        //         case "address":
+        //             return supplier.Address;
+        //         case "city":
+        //             return supplier.City;
+        //         case "postal":
+        //             return supplier.PostalCode;
+        //         case "country":
+        //             return supplier.Country;
+        //         case "phone":
+        //             return supplier.Phone;
+        //         case "mail":
+        //             return supplier.Mail;
+        //         default:
+        //             return "N/A";
+        //     }
+        // }
     }, []);
 
     return (
@@ -315,40 +344,30 @@ export default function Inventario() {
                             <ModalHeader>
                                 {
                                     mode === "create" ? "Crear" : mode === "edit" ? "Editar" : "Ver"
-                                } {
-                                    selected === "productos" ? "Producto" : "Proveedor"
-                                }
+                                } Producto
                             </ModalHeader>
                             <ModalBody>
-                                {
-                                    selected === "productos" ? null
-                                        : (
-                                            <SupplierForm
-                                                isOpen={isOpen}
-                                                onOpenChange={onOpenChange}
-                                                mode={mode}
-                                                supplier={supplierToViewOrEdit}
-                                            />
-                                        )
-                                }
+                                <ProductForm
+                                    isOpen={isOpen}
+                                    onOpenChange={onOpenChange}
+                                    mode={mode}
+                                    product={productToViewOrEdit}
+                                />
                             </ModalBody>
                         </div>
                     )}
                 </ModalContent>
             </Modal>
+            <Toaster expand={true} />
             <div className="flex w-full flex-col">
                 {topContent}
                 <>
                     <ItemsTable
-                        items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
-                        loadingContent={loadingItems}
+                        items={products.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+                        loadingContent={loadingProducts}
                         bottomContent={bottomContent}
                         renderCell={renderCell}
-                        columns={
-                            selected === "productos"
-                                ? productColumns
-                                : supplierColumns
-                        } />
+                        columns={productColumns} />
                 </>
             </div>
         </>

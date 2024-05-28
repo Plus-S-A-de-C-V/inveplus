@@ -10,13 +10,13 @@ export const siteConfig = {
       href: "/horario",
     },
     {
-      label: "Inventario",
-      href: "/inventario",
+      label: "Productos",
+      href: "/productos",
     },
-    // {
-    //   label: "Provedores",
-    //   href: "/provedores",
-    // },
+    {
+      label: "Proveedores",
+      href: "/proveedores",
+    },
     {
       label: "Personal",
       href: "/personal",

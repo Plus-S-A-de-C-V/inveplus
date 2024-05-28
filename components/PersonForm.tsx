@@ -213,6 +213,14 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
       return;
     } else if (mode === "edit") {
       // TODO: Implement edit user
+      const formData = new FormData(event.currentTarget);
+      const result = await fetch("/api/users/edit/" + user?.id, {
+        method: "POST",
+        body: formData,
+      });
+      if (result.ok) {
+        onOpenChange(false);
+      }
     } else if (mode === "create") {
       event.preventDefault();
       const formData = new FormData(event.currentTarget);

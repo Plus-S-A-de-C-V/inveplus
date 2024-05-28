@@ -103,6 +103,7 @@ export const productColumns = [
   { name: "Minimo", uid: "minimo", sortable: true },
   { name: "Precio", uid: "price", sortable: true },
   { name: "Ubicación", uid: "loc", sortable: true },
+  { name: "Actions", uid: "actions" },
 ];
 
 export const supplierColumns = [
@@ -115,6 +116,7 @@ export const supplierColumns = [
   { name: "País", uid: "country", sortable: true },
   { name: "Teléfono", uid: "phone", sortable: true },
   { name: "Correo", uid: "mail", sortable: true },
+  { name: "Actions", uid: "actions" },
 ];
 
 export type ProductColumn = (typeof productColumns)[number];

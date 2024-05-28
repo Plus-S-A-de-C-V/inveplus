@@ -1,8 +1,13 @@
 import { addSupplier } from "@/lib/db";
 import { Supplier } from "@/lib/definitions";
+import { nanoid } from "nanoid";
 
 export async function POST(req: Request): Promise<Response> {
   const data = await req.formData();
+
+  // Set the SupplierID to a new unique identifier
+  data.set("SupplierID", `SUP-${nanoid(10)}`);
+
   const supplier: Supplier = {
     SupplierID: data.get("SupplierID")?.toString() || "",
     SupplierName: data.get("SupplierName")?.toString() || "",
@@ -14,6 +19,8 @@ export async function POST(req: Request): Promise<Response> {
     Phone: data.get("Phone")?.toString() || "",
     Mail: data.get("Mail")?.toString() || "",
   };
+
+  console.log(supplier);
 
   const result = await addSupplier(supplier);
   if (result == null) {

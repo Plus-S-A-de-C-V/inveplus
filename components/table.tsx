@@ -38,6 +38,8 @@ interface Props {
 }
 
 export const ItemsTable = ({ items, loadingContent, topContent, bottomContent, renderCell, columns }: Props) => {
+    console.log("items", items)
+
     return (
         <>
             <Table

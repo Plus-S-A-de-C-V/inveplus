@@ -1,10 +1,14 @@
 import { Supplier } from "@/lib/definitions";
 import { updateSupplier } from "@/lib/db";
 
-export async function POST(req: Request): Promise<Response> {
+export async function POST(
+  req: Request,
+  { params }: { params: { id: string } }
+): Promise<Response> {
   const data = await req.formData();
+  const id = params.id;
   const supplier: Supplier = {
-    SupplierID: data.get("SupplierID")?.toString() || "",
+    SupplierID: id || "",
     SupplierName: data.get("SupplierName")?.toString() || "",
     ContactName: data.get("ContactName")?.toString() || "",
     Address: data.get("Address")?.toString() || "",
