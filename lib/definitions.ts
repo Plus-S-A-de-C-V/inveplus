@@ -176,3 +176,11 @@ export type Check = {
   // UserChecked: string; // id to Usuario
   // UserWhoChecked: string; // id to Usuario
 };
+
+export const checksColumns = [
+  { name: "ID", uid: "id", sortable: true },
+  { name: "Usuario", uid: "userChecked", sortable: true },
+  { name: "Movimiento", uid: "movimiento", sortable: true },
+  { name: "Fecha y Hora", uid: "FechaYHora", sortable: true },
+  { name: "Actions", uid: "actions" },
+];

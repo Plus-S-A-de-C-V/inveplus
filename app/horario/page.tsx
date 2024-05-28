@@ -30,42 +30,41 @@ import { PlusIcon, MagnifyingGlassIcon, DotsVerticalIcon, EyeOpenIcon, Pencil1Ic
 
 import {
   Usuario,
+  Check,
   statusOptions,
   statusOptionsColorMap,
   INITIAL_VISIBLE_COLUMNS,
-  usersColumns as columns,
+  checksColumns as columns,
   Column,
 } from "@/lib/definitions";
 
-import PersonForm from "@/components/PersonForm";
+// import { ChecksForm } from "@/components/ChecksForm";
 import { ItemsTable } from "@/components/table";
+import ChecksForm from "@/components/ChecksForm";
 
 import { Toaster, toast } from 'sonner';
 import { Items } from "cloudflare/resources/rules/lists/items";
 
 export default function Personal() {
-  const [users, setUsers] = React.useState<Usuario[]>([]);
-  const [userToViewOrEdit, setUserToViewOrEdit] = React.useState<Usuario | undefined>(undefined);
+  const [users, setUsers] = React.useState<Check[]>([]);
+  const [userToViewOrEdit, setUserToViewOrEdit] = React.useState<Check | undefined>(undefined);
   const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
   const [filterValue, setFilterValue] = React.useState<string>("");
   const [page, setPage] = React.useState(1);
   const [pages, setPages] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
-  const [filteredItems, setFilteredItems] = React.useState<Usuario[]>([]);
+  const [filteredItems, setFilteredItems] = React.useState<Check[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(true);
+
+  const [usuarios, setUsuarios] = React.useState<Usuario[]>([]);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
   React.useEffect(() => {
     // Get users from api
     const fetchUsers = async () => {
-      const users = await fetch("/api/users", {
-        cache: "reload",
-      }).then((res) => res.json());
-      setUsers(users);
-      setFilteredItems(users);
-      setLoadingUsers(false);
+      reloadUsers();
     }
 
     fetchUsers();
@@ -73,7 +72,15 @@ export default function Personal() {
 
   const reloadUsers = async () => {
     setLoadingUsers(true);
-    const users = await fetch("/api/users").then((res) => res.json());
+    const _users = await fetch("/api/checks").then((res) => res.json());
+    const _usuarios = await fetch("/api/users").then((res) => res.json());
+
+    // Sort users by timestamp, newest first
+    const users = _users.sort((a: Check, b: Check) => {
+      return new Date(b.FechaYHora).getTime() - new Date(a.FechaYHora).getTime();
+    });
+
+    setUsuarios(_usuarios);
     setUsers(users);
     setFilteredItems(users);
     setLoadingUsers(false);
@@ -89,7 +96,7 @@ export default function Personal() {
       setFilterValue(value);
 
       const filteredItems = users.filter((user) => {
-        return user.Nombre.toLowerCase().includes(value.toLowerCase());
+        return user.id.toLowerCase().includes(value.toLowerCase());
       });
 
       setFilteredItems(filteredItems);
@@ -147,20 +154,20 @@ export default function Personal() {
               </DropdownMenu>
             </Dropdown> */}
             <Button color="default" startContent={<ReloadIcon />} onPress={reloadUsers} variant="bordered">
-              Recargar Usuarios
+              Recargar Checks
             </Button>
             <Button color="primary" endContent={<PlusIcon />} onPress={() => {
               setUserToViewOrEdit(undefined);
               onOpenChange();
               setMode("create");
             }}>
-              Agregar nuevo usuario
+              Agregar nuevo Check
             </Button>
           </div>
 
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">{users.length} usuarios</span>
+          <span className="text-default-400 text-small">{users.length} checks</span>
           <label className="flex items-center text-default-400 text-small">
             Filas por pagina:
             <select
@@ -224,19 +231,20 @@ export default function Personal() {
     vacation: "warning",
   };
 
-  const deleteUser = async (user: Usuario) => {
+  const deleteUser = async (user: Check) => {
     toast.promise(
       new Promise(async (resolve) => {
         const _deleteUser = async () => {
-          const response = await fetch("/api/users/delete/" + user.id, {
+          const response = await fetch("/api/checks/delete/" + user.id, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
             },
-            // body: JSON.stringify({ id: user.id }),
+            body: JSON.stringify({ id: user.id }),
           });
 
           if (response.status === 200) {
+            console.log("Check eliminado con exito");
             const newUsers = users.filter((u) => u.id !== user.id);
             setUsers(newUsers);
             setFilteredItems(newUsers);
@@ -249,53 +257,52 @@ export default function Personal() {
         await _deleteUser();
       }),
       {
-        loading: 'Eliminando usuario...',
-        success: 'Usuario eliminado con exito',
-        error: 'Error al eliminar usuario'
+        loading: 'Eliminando check...',
+        success: 'Check eliminado con exito',
+        error: 'Error al eliminar check'
       },
     );
 
     // reloadUsers();
   }
 
-  const renderCell = React.useCallback((user: Usuario, columnKey: Column) => {
-    // const cellValue = user[columnKey as keyof User];
+  const renderCell = React.useCallback((user: Check, columnKey: Column) => {
+    console.log(user);
+    console.log(columnKey);
 
-    const getDateWithouthTime = (date: Date | undefined) => {
-      if (!date) return "N/A"
-
-      const newDate = new Date(date);
-      return newDate.toDateString();
-    }
+    const userToDisplay: Usuario | undefined = usuarios.find((u) => u.id === user.userChecked);
 
     switch (columnKey.uid) {
-      case "persona":
+      case "id":
+        return user.id;
+
+      case "userChecked":
         return (
-          <User
-            avatarProps={{ radius: "lg", src: "" }}
-            description={user.Apellidos}
-            name={user.Nombre}
-          >
-            {user.Nombre} + " " + {user.Apellidos}
-          </User>
-        );
-      case "role":
+          userToDisplay ? (
+            <User
+              avatarProps={{ radius: "lg", src: "" }}
+              description={userToDisplay.Apellidos}
+              name={userToDisplay.Nombre}
+            >
+              {userToDisplay.Nombre} + " " + {userToDisplay.Apellidos}
+            </User>
+          ) : "N/A"
+        )
+
+      case "movimiento":
         return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">rol</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.Apellidos}</p>
-          </div>
-        );
-      case "status":
-        return (
-          <Chip className="capitalize" color={statusColorMap[user.id]} size="sm" variant="flat">
-            estado
-          </Chip>
-        );
+          <Chip color={statusColorMap[user.movimiento === 0 ? "active" : "paused"]}>{
+            user.movimiento === 0 ? "Entrada" : "Salida"
+          }</Chip>
+        )
+
+      case "FechaYHora":
+        return user.FechaYHora.toString();
+
       case "actions":
         return (
           <div className="relative flex items-center gap-2">
-            <Tooltip content="Detalles">
+            {/* <Tooltip content="Detalles">
               <span className="text-9xl text-default-400 cursor-pointer active:opacity-50">
                 <EyeOpenIcon
                   onClick={() => {
@@ -305,8 +312,8 @@ export default function Personal() {
                   }}
                 />
               </span>
-            </Tooltip>
-            <Tooltip content="Editar Usuario">
+            </Tooltip> */}
+            {/* <Tooltip content="Editar Usuario">
               <span className="text-lg text-default-400 cursor-pointer active:opacity-50">
                 <Pencil1Icon
                   onClick={() => {
@@ -316,7 +323,7 @@ export default function Personal() {
                   }}
                 />
               </span>
-            </Tooltip>
+            </Tooltip> */}
             <Tooltip color="danger" content="Eliminar Usuario">
               <span className="text-lg text-danger cursor-pointer active:opacity-50">
                 <TrashIcon
@@ -326,26 +333,6 @@ export default function Personal() {
             </Tooltip>
           </div>
         );
-      case "email":
-        return <p>{user.InformacionPersonal?.correoElectronico}</p>
-      case "numero":
-        return <p>{user.InformacionPersonal?.NumeroTelefonico}</p>
-      case "direccion":
-        return <p>{user.InformacionPersonal?.Direccion}</p>
-      case "clinica":
-        return <p>{user.InformacionMedica?.ClinicaAsignada}</p>
-      case "sangre":
-        return <p>{user.InformacionMedica?.TipoDeSangre}</p>
-      case "nacimiento":
-        return <p>{getDateWithouthTime(user.InformacionPersonal?.FechaDeNacimiento)}</p>
-      case "curp":
-        return <p>{user.InformacionPersonal?.CURP}</p>
-      case "rfc":
-        return <p>{user.InformacionPersonal?.RFC}</p>
-      case "lector":
-        return <p>{user.InformacionPersonal?.ClaveLector}</p>
-      case "id":
-        return <p>{user.id}</p>
       default:
         return "N/A";
     }
@@ -360,13 +347,13 @@ export default function Personal() {
             <div>
               <ModalHeader>
                 {
-                  mode === "view" ? "Detalles de Usuario" :
-                    mode === "edit" ? "Editar Usuario" :
-                      mode === "create" ? "Crear Usuario" : "Usuario"
+                  mode === "view" ? "Detalles del Check" :
+                    mode === "edit" ? "Editar Check" :
+                      mode === "create" ? "Crear Check" : "Check"
                 }
               </ModalHeader>
               <ModalBody>
-                <PersonForm isOpen={isOpen} onOpenChange={onOpenChange} user={userToViewOrEdit} mode={mode} />
+                <ChecksForm isOpen={isOpen} onOpenChange={onOpenChange} mode={mode} />
               </ModalBody>
             </div>
           )}

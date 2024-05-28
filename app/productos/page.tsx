@@ -165,17 +165,15 @@ export default function Inventario() {
         return (
             <div className="flex flex-col gap-4">
                 <div className="flex justify-between gap-3 items-end">
-                    <div className="flex justify-start gap-2 items-end w-full">
-                        <Input
-                            isClearable
-                            className="w-1/2"
-                            placeholder="Buscar por nombre..."
-                            startContent={<MagnifyingGlassIcon className="h-1/2" />}
-                            value={filterValue}
-                            onClear={() => onClear()}
-                            onValueChange={onSearchChange}
-                        />
-                    </div>
+                    <Input
+                        isClearable
+                        className="w-1/2"
+                        placeholder="Buscar por nombre..."
+                        startContent={<MagnifyingGlassIcon className="h-1/2" />}
+                        value={filterValue}
+                        onClear={() => onClear()}
+                        onValueChange={onSearchChange}
+                    />
                     <div className="flex gap-3">
                         <Button color="default" startContent={<ReloadIcon />} onPress={reloadItems} variant="bordered">
                             Recargar Productos
@@ -221,7 +219,7 @@ export default function Inventario() {
                             "Content-Type": "application/json",
                         },
                         // body: JSON.stringify({ id: user.ProductID }),
-                    }).then((res) => res.json());
+                    });
 
                     if (response.status === 200) {
                         const newUsers = products.filter((u) => u.ProductID !== user.ProductID);

@@ -214,7 +214,7 @@ export default function Inventario() {
                             "Content-Type": "application/json",
                         },
                         // body: JSON.stringify({ id: supplier.SupplierID }),
-                    }).then((res) => res.json());
+                    });
 
                     if (response.status === 200) {
                         const newUsers = suppliers.filter((u) => u.SupplierID !== supplier.SupplierID);
