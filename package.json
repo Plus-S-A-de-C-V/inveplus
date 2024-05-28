@@ -19,6 +19,7 @@
     "bcryptjs": "^2.4.3",
     "cf-bindings-proxy": "^0.7.1",
     "cloudflare": "^3.2.0",
+    "flatted": "^3.3.1",
     "next": "^14.2.3",
     "next-auth": "^5.0.0-beta.18",
     "next-themes": "^0.3.0",

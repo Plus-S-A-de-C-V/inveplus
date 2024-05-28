@@ -64,12 +64,12 @@ export async function POST(req: Request) {
   const _fileCURP = __fileCURP as File;
   const _fileComprobante = __fileComprobante as File;
 
-  const profilePic = `[${_profilePic.name}]${nanoid()}`;
-  const fileINE = `[${_fileINE.name}]${nanoid()}`;
-  const fileConstancia = `[${_fileConstancia.name}]${nanoid()}`;
-  const fileNSS = `[${_fileNSS.name}]${nanoid()}`;
-  const fileCURP = `[${_fileCURP.name}]${nanoid()}`;
-  const fileComprobante = `[${_fileComprobante.name}]${nanoid()}`;
+  const profilePic = `[${nanoid(10)}]${_profilePic.name}`;
+  const fileINE = `[${nanoid(10)}]${_fileINE.name}`;
+  const fileConstancia = `[${nanoid(10)}]${_fileConstancia.name}`;
+  const fileNSS = `[${nanoid(10)}]${_fileNSS.name}`;
+  const fileCURP = `[${nanoid(10)}]${_fileCURP.name}`;
+  const fileComprobante = `[${nanoid(10)}]${_fileComprobante.name}`;
 
   const profilePicBuffer = Buffer.from(await _profilePic.arrayBuffer());
   const fileINEBuffer = Buffer.from(await _fileINE.arrayBuffer());
@@ -91,11 +91,11 @@ export async function POST(req: Request) {
   ]);
 
   let DocumentosPersonales: DocumentosPersonales = {
-    INE: profilePic,
+    INE: fileINE,
     ConstanciaDeSituacionFiscal: fileConstancia,
     AsignacionDeNSS: fileNSS,
-    ComprobanteDeDomicilio: fileComprobante,
     CURP: fileCURP,
+    ComprobanteDeDomicilio: fileComprobante,
   };
 
   let user: Usuario = {
@@ -109,8 +109,6 @@ export async function POST(req: Request) {
     checks: [],
     Foto: profilePic,
   };
-
-  console.log(user);
 
   const result = await addUser(user);
   if (!result) {

@@ -12,7 +12,14 @@ const ACCOUNT_ID = process.env.ACCOUNT_ID || "";
 const ACCOUNT_EMAIL = process.env.ACCOUNT_EMAIL || "";
 
 //import { S3 } from "@aws-sdk/client-s3";
-import S3 from "aws-sdk/clients/s3.js";
+// import S3 from "aws-sdk/clients/s3.js";
+import {
+  S3Client,
+  GetObjectCommand,
+  PutObjectCommand,
+  DeleteObjectCommand,
+  ListObjectsCommand,
+} from "@aws-sdk/client-s3";
 
 import {
   Usuario,
@@ -28,11 +35,20 @@ import {
 
 import Cloudflare from "cloudflare";
 
-const s3 = new S3({
-  endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
-  accessKeyId: `${S3_ACCESS_KEY}`,
-  secretAccessKey: `${S3_SECRET_ACCESS_KEY}`,
-  signatureVersion: "v4",
+// const s3 = new S3({
+//   endpoint: `https://${ACCOUNT_ID}.r2.cloudflarestorage.com`,
+//   accessKeyId: `${S3_ACCESS_KEY}`,
+//   secretAccessKey: `${S3_SECRET_ACCESS_KEY}`,
+//   signatureVersion: "v4",
+// });
+
+const s3 = new S3Client({
+  region: "us-east-1",
+  endpoint: S3_API_URL,
+  credentials: {
+    accessKeyId: S3_ACCESS_KEY,
+    secretAccessKey: S3_SECRET_ACCESS_KEY,
+  },
 });
 
 const cloudflare = new Cloudflare({
@@ -208,7 +224,7 @@ export async function addUser(user: Usuario) {
   });
 
   await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `INSERT INTO InformacionPersonal (UsuarioId, FechaDeNacimiento, CURP, RFC, NSS, ClaveLector, Direccion, NumeroTelefonico, correoElectronico, LINK_INE, LINK_ConstanciaDeSituacionFiscal, LINK_AsignacionDeNSS, LINK_ComprobanteDeDominio, LINK_CURP) VALUES ("${user.id}", "${user.InformacionPersonal?.FechaDeNacimiento}", "${user.InformacionPersonal?.CURP}", "${user.InformacionPersonal?.RFC}", "${user.InformacionPersonal?.NSS}","${user.InformacionPersonal?.NSS}", "${user.InformacionPersonal?.ClaveLector}", "${user.InformacionPersonal?.Direccion}", "${user.InformacionPersonal?.NumeroTelefonico}", "${user.InformacionPersonal?.correoElectronico}", "${user.DocumentosPersonales?.INE}", "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", "${user.DocumentosPersonales?.AsignacionDeNSS}", "${user.DocumentosPersonales?.CURP}");`,
+    sql: `INSERT INTO InformacionPersonal (UsuarioId, FechaDeNacimiento, CURP, RFC, NSS, ClaveLector, Direccion, NumeroTelefonico, correoElectronico, LINK_INE, LINK_ConstanciaDeSituacionFiscal, LINK_AsignacionDeNSS, LINK_CURP, LINK_ComprobanteDeDominio) VALUES ("${user.id}", "${user.InformacionPersonal?.FechaDeNacimiento}", "${user.InformacionPersonal?.CURP}", "${user.InformacionPersonal?.RFC}", "${user.InformacionPersonal?.NSS}","${user.InformacionPersonal?.ClaveLector}", "${user.InformacionPersonal?.Direccion}", "${user.InformacionPersonal?.NumeroTelefonico}", "${user.InformacionPersonal?.correoElectronico}", "${user.DocumentosPersonales?.INE}", "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", "${user.DocumentosPersonales?.AsignacionDeNSS}", "${user.DocumentosPersonales?.CURP}", "${user.DocumentosPersonales?.ComprobanteDeDomicilio}");`,
   });
 
   return user;
@@ -533,50 +549,99 @@ export async function deleteSupplier(id: string) {
   return supplierToDelete;
 }
 
-export async function getObjects() {
-  const objects = await s3.listObjects({ Bucket: "inveplus" }).promise();
-  return objects;
-}
+// export async function getObjects() {
+//   const input = {
+//     "Bucket": "inveplus",
+//   }
+//   const command = new ListObjectsCommand(input);
+//   const objects = await s3.send(command);
+//   return objects;
+//   // const objects = await s3.listObjects({ Bucket: "inveplus" }).promise();
+//   // return objects;
+// }
 
-export async function getObject(objectName: string) {
-  const object = await s3
-    .getObject({ Bucket: "inveplus", Key: objectName })
-    .promise();
-  return object;
+export async function getObject(objectName: string): Promise<Buffer> {
+  const input = {
+    Bucket: "inveplus",
+    Key: objectName,
+  };
+
+  const command = new GetObjectCommand(input);
+  const object: any = await s3.send(command);
+
+  if (!object || !object.Body) {
+    throw new Error("Object body is undefined");
+  }
+
+  // Convert the stream to a Buffer
+  const buffer = await new Promise<Buffer>((resolve, reject) => {
+    if(!object) return null;
+    if(!object.Body) return null;
+
+
+    const chunks: Buffer[] = [];
+    object.Body.on("data", (chunk: Buffer) => chunks.push(chunk));
+    object.Body.on("error", reject);
+    object.Body.on("end", () => resolve(Buffer.concat(chunks)));
+  });
+
+  return buffer;
 }
 
 export async function editObject(objectName: string, newObjectContent: Buffer) {
-  const res = await s3
-    .putObject({
-      Bucket: "inveplus",
-      Key: objectName,
-      Body: newObjectContent,
-    })
-    .promise();
-  return res;
+  const input = {
+    Bucket: "inveplus",
+    Key: objectName,
+    Body: newObjectContent,
+  };
+  const command = new PutObjectCommand(input);
+  const object = await s3.send(command);
+  return object;
+  // const res = await s3
+  //   .putObject({
+  //     Bucket: "inveplus",
+  //     Key: objectName,
+  //     Body: newObjectContent,
+  //   })
+  //   .promise();
+  // return res;
 }
 
 export async function deleteObject(objectName: string) {
-  const res = await s3.deleteObject({ Bucket: "inveplus", Key: objectName });
-  return res;
+  const input = {
+    Bucket: "inveplus",
+    Key: objectName,
+  };
+  const command = new DeleteObjectCommand(input);
+  const object = await s3.send(command);
+  // const res = await s3.deleteObject({ Bucket: "inveplus", Key: objectName });
+  // return res;
 }
 
-export async function getObjectAtributes(objectName: string) {
-  const atributes = await s3
-    .headObject({ Bucket: "inveplus", Key: objectName })
-    .promise();
-  return atributes;
-}
+// export async function getObjectAtributes(objectName: string) {
+//   const atributes = await s3
+//     .headObject({ Bucket: "inveplus", Key: objectName })
+//     .promise();
+//   return atributes;
+// }
 
 export async function uploadObject(objectName: string, object: Buffer) {
-  const res = await s3
-    .putObject({
-      Bucket: "inveplus",
-      Key: objectName,
-      Body: object,
-    })
-    .promise();
-  return res;
+  const input = {
+    Bucket: "inveplus",
+    Key: objectName,
+    Body: object,
+  };
+  const command = new PutObjectCommand(input);
+  const _object = await s3.send(command);
+  return _object;
+  // const res = await s3
+  //   .putObject({
+  //     Bucket: "inveplus",
+  //     Key: objectName,
+  //     Body: object,
+  //   })
+  //   .promise();
+  // return res;
 }
 
 // export async function getFactors() {
