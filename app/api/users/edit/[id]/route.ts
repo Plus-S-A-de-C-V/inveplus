@@ -4,15 +4,68 @@ import {
   InformacionPersonal,
   DocumentosPersonales,
 } from "@/lib/definitions";
-import { editObject, updateUser } from "@/lib/db";
+import { editObject, updateUser, deleteObject, getUser } from "@/lib/db";
 import { nanoid } from "nanoid";
 
-export async function PUT(
+async function updateFiles(file: File) {
+  console.log("Updating file", file);
+  // If no file is provided, return ann empty string
+  if (!file) return "";
+  const url = `[${nanoid(10)}]${file.name}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  try {
+    const result = await editObject(url, buffer);
+    if (!result) {
+      return "";
+    }
+  } catch (e) {
+    console.error("Failed to update file", e);
+    return "";
+  }
+
+  return url;
+}
+
+export async function POST(
   req: Request,
   { params }: { params: { id: string } }
 ) {
-  // The user object is inside the request body
+  const id = params.id;
   const data = await req.formData();
+  const oldUser = await getUser(id);
+  if (!oldUser) {
+    return new Response("User not found", {
+      status: 404,
+    });
+  }
+
+  // Delete old files
+  const oldProfilePic = oldUser.DocumentosPersonales?.INE;
+  const oldFileINE = oldUser.DocumentosPersonales?.ConstanciaDeSituacionFiscal;
+  const oldFileConstancia = oldUser.DocumentosPersonales?.AsignacionDeNSS;
+  const oldFileNSS = oldUser.DocumentosPersonales?.ComprobanteDeDomicilio;
+  const oldFileCURP = oldUser.DocumentosPersonales?.CURP;
+
+  const filesToDelete = [
+    oldProfilePic,
+    oldFileINE,
+    oldFileConstancia,
+    oldFileNSS,
+    oldFileCURP,
+  ];
+
+  Promise.all(
+    filesToDelete.map((file) =>
+      deleteObject(file || "").catch((error) => {
+        console.error(`Failed to delete file: ${file}. Error: ${error}`);
+      })
+    )
+  );
+
+  console.log("Files deleted");
+
+  // The user object is inside the request body
+
   const userMeidcal: InformacionMedica = {
     ClinicaAsignada: data.get("clinica")?.toString() || "",
     TipoDeSangre: data.get("tipoSangre")?.toString() || "",
@@ -31,70 +84,26 @@ export async function PUT(
     RFC: data.get("rfc")?.toString() || "",
   };
 
-  const __profilePic = data.get("profilePic");
-  const __fileINE = data.get("fileINE");
-  const __fileConstancia = data.get("fileConstancia");
-  const __fileNSS = data.get("fileAsignacion");
-  const __fileCURP = data.get("fileCURP");
-  const __fileComprobante = data.get("comprobanteDomicilio");
+  console.log("Updating files");
 
-  // If any of the files is missing, return an error
-  // if (
-  //   !__profilePic ||
-  //   !__fileINE ||
-  //   !__fileConstancia ||
-  //   !__fileNSS ||
-  //   !__fileCURP ||
-  //   !__fileComprobante
-  // ) {
-  //   console.log("Missing files");
-  //   console.log(__profilePic);
-  //   console.log(__fileINE);
-  //   console.log(__fileConstancia);
-  //   console.log(__fileNSS);
-  //   console.log(__fileCURP);
-  //   console.log(__fileComprobante);
-  //   console.log(data);
-  //   return new Response("Missing files", {
-  //     status: 400,
-  //   });
-  // }
-
-  const _profilePic = __profilePic as File;
-  const _fileINE = __fileINE as File;
-  const _fileConstancia = __fileConstancia as File;
-  const _fileNSS = __fileNSS as File;
-  const _fileCURP = __fileCURP as File;
-  const _fileComprobante = __fileComprobante as File;
-
-  const profilePic = `[${nanoid(10)}]${_profilePic.name}`;
-  const fileINE = `[${nanoid(10)}]${_fileINE.name}`;
-  const fileConstancia = `[${nanoid(10)}]${_fileConstancia.name}`;
-  const fileNSS = `[${nanoid(10)}]${_fileNSS.name}`;
-  const fileCURP = `[${nanoid(10)}]${_fileCURP.name}`;
-  const fileComprobante = `[${nanoid(10)}]${_fileComprobante.name}`;
-
-  const profilePicBuffer = Buffer.from(await _profilePic.arrayBuffer());
-  const fileINEBuffer = Buffer.from(await _fileINE.arrayBuffer());
-  const fileConstanciaBuffer = Buffer.from(await _fileConstancia.arrayBuffer());
-  const fileNSSBuffer = Buffer.from(await _fileNSS.arrayBuffer());
-  const fileCURPBuffer = Buffer.from(await _fileCURP.arrayBuffer());
-  const fileComprobanteBuffer = Buffer.from(
-    await _fileComprobante.arrayBuffer()
-  );
-
-  // TODO: Add error handling
-  Promise.all([
-    editObject(profilePic, profilePicBuffer),
-    editObject(fileINE, fileINEBuffer),
-    editObject(fileConstancia, fileConstanciaBuffer),
-    editObject(fileNSS, fileNSSBuffer),
-    editObject(fileCURP, fileCURPBuffer),
-    editObject(fileComprobante, fileComprobanteBuffer),
+  const [
+    profilePic,
+    fileINE,
+    fileConstancia,
+    fileNSS,
+    fileCURP,
+    fileComprobante,
+  ] = await Promise.all([
+    updateFiles(data.get("profilePic") as File),
+    updateFiles(data.get("fileINE") as File),
+    updateFiles(data.get("fileConstancia") as File),
+    updateFiles(data.get("fileAsignacion") as File),
+    updateFiles(data.get("fileCURP") as File),
+    updateFiles(data.get("comprobanteDomicilio") as File),
   ]);
 
   let DocumentosPersonales: DocumentosPersonales = {
-    INE: profilePic,
+    INE: fileINE,
     ConstanciaDeSituacionFiscal: fileConstancia,
     AsignacionDeNSS: fileNSS,
     ComprobanteDeDomicilio: fileComprobante,
@@ -113,16 +122,27 @@ export async function PUT(
     Foto: profilePic,
   };
 
-  console.log(user);
+  // console.log("Old user", oldUser);
+  // console.log("New user", user);
 
-  const result = await updateUser(user);
-  if (!result) {
-    return new Response("Failed to create user", {
+  console.log("Trying to update user");
+  try {
+    console.log("Updating user");
+    const result = await updateUser(user);
+    if (!result) {
+      return new Response("Failed to create user", {
+        status: 500,
+      });
+    }
+
+    console.log("User updated successfully");
+    return new Response("Created user successfully!", {
+      status: 201,
+    });
+  } catch (e) {
+    console.error("Failed to update user", e);
+    return new Response("Failed to update user", {
       status: 500,
     });
   }
-
-  return new Response("Created user successfully!", {
-    status: 201,
-  });
 }

@@ -16,6 +16,8 @@ import {
   ModalFooter,
   useDisclosure,
   Spinner,
+  Autocomplete,
+  AutocompleteItem,
 } from "@nextui-org/react";
 
 import React, { FormEvent, useEffect, useRef } from "react";
@@ -39,9 +41,10 @@ interface formProps {
   onOpenChange: (isOpen: boolean) => void;
   mode: "create" | "edit" | "view";
   user?: Usuario;
+  setRequestRefresh: (value: boolean) => void;
 }
 
-export default function PersonForm({ isOpen, onOpenChange, mode, user }: formProps) {
+export default function PersonForm({ isOpen, onOpenChange, mode, user, setRequestRefresh }: formProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isSystemUser, setSystemUser] = React.useState(false);
   const [password, setPassword] = React.useState("");
@@ -61,10 +64,15 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
   const [sangreIsValid, setSangreIsValid] = React.useState(true);
 
   const [isLoading, setIsLoading] = React.useState(true);
+  const [sending, setSending] = React.useState(false);
 
   useEffect(() => {
     // Download the files
     downlaod();
+
+    if (mode === "view" || mode === "edit") {
+      setSangre(user?.InformacionMedica?.TipoDeSangre || "");
+    }
   }, []);
 
   // useEffect(() => {
@@ -123,6 +131,7 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
     //     return file;
     //   });
 
+    console.log("Profile pic:", profile);
     await setProfilePic(profile);
     // await setFileINE(ine);
     // await setFileConstancia(constancia);
@@ -266,7 +275,9 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
   // };
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    setSending(true);
     if (mode === "view") {
+      setSending(false);
       onOpenChange(false);
       return;
     } else if (mode === "edit") {
@@ -274,9 +285,12 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
       const result = await fetch("/api/users/edit/" + user?.id, {
         method: "POST",
         body: formData,
+        cache: "no-cache",
       });
-      if (result.ok) {
-        onOpenChange(false);
+      if (result.status === 201) {
+        await setSending(false);
+        setRequestRefresh(true);
+        await onOpenChange(false);
       }
     } else if (mode === "create") {
       event.preventDefault();
@@ -290,14 +304,20 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
       const result = await fetch("/api/users/new", {
         method: "POST",
         body: formData,
+        cache: "no-cache",
       });
 
-      if (result.ok) {
+      if (result.status === 200) {
+        setSending(false);
+        setRequestRefresh(true);
         onOpenChange(false);
       }
     } else {
+      setSending(false);
       onOpenChange(false);
     }
+
+    setSending(false);
   }
 
   const tiposDeSangre = [
@@ -310,6 +330,8 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
     { label: "O+", value: "O+" },
     { label: "O-", value: "O-" },
   ];
+
+  type tipoDeSangre = typeof tiposDeSangre[number];
 
   return (
     (isLoading && mode !== "create") ? (
@@ -702,28 +724,55 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
                     </div>
                   </>
                 ) : (
-                  <Select
+                  <Autocomplete
                     name="tipoSangre"
-                    // isClearable={mode === "create" || mode === "edit"}
-                    isRequired={mode === "create"}
-                    // isReadOnly={mode === "view"}
-                    value={mode === "create" ? tipoSangre : user?.InformacionMedica?.TipoDeSangre}
+                    label="Tipo de sangre"
+                    placeholder="Seleccione un tipo"
                     className="p-2 w-full"
-                    label="Tipo de Sangre"
-                    placeholder="Selecciona el tipo de sangre..."
-                    startContent={
-                      <DrawingPinFilledIcon className="w-5 h-5 text-default-400" />
-                    }
-                    onChange={(e) => setSangre(e.target.value)}
-                    isInvalid={!sangreIsValid}
-                    id="sangre"
+                    isLoading={isLoading}
+                    isRequired
+                    errorMessage="Selecciona un Usuario"
+                    // selectedKey={tipoSangre}
+                    // onSelectionChange={(key) => setSangre(key?.toString() || "")}
                   >
-                    {tiposDeSangre.map((animal) => (
-                      <SelectItem key={animal.value} value={animal.value}>
-                        {animal.label}
-                      </SelectItem>
-                    ))}
-                  </Select>
+                    {
+                      tiposDeSangre.map((tipo: tipoDeSangre) => (
+                        <AutocompleteItem key={tipo.label} textValue={tipo.value}>
+                          <p>
+                            {tipo.label}
+                          </p>
+                        </AutocompleteItem>
+                      ))
+                    }
+                  </Autocomplete>
+
+                  // <Select
+                  //   name="tipoSangre"
+                  //   selectionMode="single"
+                  //   // isClearable={mode === "create" || mode === "edit"}
+                  //   isRequired={mode === "create"}
+                  //   // isReadOnly={mode === "view"}
+                  //   // value={mode === "create" ? tipoSangre : user?.InformacionMedica?.TipoDeSangre}
+                  //   value={tipoSangre}
+                  //   className="p-2 w-full"
+                  //   label="Tipo de Sangre"
+                  //   placeholder="Selecciona el tipo de sangre..."
+                  //   startContent={
+                  //     <DrawingPinFilledIcon className="w-5 h-5 text-default-400" />
+                  //   }
+                  //   onChange={(e) => setSangre(e.target.value)}
+                  //   isInvalid={!sangreIsValid}
+                  //   id="sangre"
+                  //   items={tiposDeSangre}
+                  // // selectedKeys={tipoSangre}
+                  // // onSelectionChange={(key) => setSangre(key?.toString() || "")}
+                  // >
+                  //   {(item: tipoDeSangre) => (
+                  //     <SelectItem key={item.value} className="capitalize w-full">
+                  //       {item.label}
+                  //     </SelectItem>
+                  //   )}
+                  // </Select>
                 )
               }
             </div>
@@ -735,6 +784,8 @@ export default function PersonForm({ isOpen, onOpenChange, mode, user }: formPro
               color="primary"
               startContent={<CheckIcon className="h-6 w-6" />}
               type="submit"
+              isLoading={sending}
+              disabled={sending}
             >
               {
                 mode === "create" ? "Crear Usuario" : mode === "edit" ? "Guardar Cambios" : "Cerrar"

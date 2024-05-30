@@ -6,6 +6,9 @@ import { Providers } from "@/app/providers";
 import { Navbar } from "@/components/navbar";
 import { Link } from "@nextui-org/react";
 import clsx from "clsx";
+import { Inter } from "next/font/google";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {

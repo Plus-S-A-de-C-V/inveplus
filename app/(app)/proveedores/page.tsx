@@ -63,6 +63,7 @@ export default function Inventario() {
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
+    const [requestRefresh, setRequestRefresh] = React.useState(false);
 
 
     React.useEffect(() => {
@@ -79,7 +80,6 @@ export default function Inventario() {
 
         const suppliers = await fetch("/api/suppliers",
             {
-                cache: "reload",
                 method: "GET",
             }
         ).then((res) => res.json());
@@ -88,6 +88,13 @@ export default function Inventario() {
         setFilteredSuppliers(suppliers);
         setLoadingSuppliers(false);
     }
+
+    React.useEffect(() => {
+        if (requestRefresh) {
+            reloadItems();
+            setRequestRefresh(false);
+        }
+    }, [requestRefresh])
 
     const onClear = React.useCallback(() => {
         setFilterValue("")
@@ -234,6 +241,8 @@ export default function Inventario() {
                 error: 'Error al eliminar Proveedor'
             },
         );
+
+        setRequestRefresh(true);
     }
 
     const renderCell = React.useCallback((item: Supplier, column: SupplierColumn) => {
@@ -312,6 +321,7 @@ export default function Inventario() {
                                     onOpenChange={onOpenChange}
                                     mode={mode}
                                     supplier={supplierToViewOrEdit}
+                                    setRequestRefresh={setRequestRefresh}
                                 />
                             </ModalBody>
                         </div>

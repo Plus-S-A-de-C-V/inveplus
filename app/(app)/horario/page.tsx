@@ -45,19 +45,18 @@ import ChecksForm from "@/components/ChecksForm";
 import { Toaster, toast } from 'sonner';
 import { Items } from "cloudflare/resources/rules/lists/items";
 
+type CompleteCheck = Check & { userChecked: Usuario };
+
 export default function Personal() {
-  const [users, setUsers] = React.useState<Check[]>([]);
-  const [userToViewOrEdit, setUserToViewOrEdit] = React.useState<Check | undefined>(undefined);
+  const [users, setUsers] = React.useState<CompleteCheck[]>([]);
   const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
   const [filterValue, setFilterValue] = React.useState<string>("");
   const [page, setPage] = React.useState(1);
   const [pages, setPages] = React.useState(1);
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [selectedKeys, setSelectedKeys] = React.useState<string[]>([]);
-  const [filteredItems, setFilteredItems] = React.useState<Check[]>([]);
+  const [filteredItems, setFilteredItems] = React.useState<CompleteCheck[]>([]);
   const [loadingUsers, setLoadingUsers] = React.useState(true);
-
-  const [usuarios, setUsuarios] = React.useState<Usuario[]>([]);
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
@@ -72,17 +71,26 @@ export default function Personal() {
 
   const reloadUsers = async () => {
     setLoadingUsers(true);
-    const _users = await fetch("/api/checks").then((res) => res.json());
-    const _usuarios = await fetch("/api/users").then((res) => res.json());
+    const _checks = await fetch("/api/checks").then((res) => res.json());
+    const _usuarios = await fetch("/api/users", {
+    }).then((res) => res.json());
 
-    // Sort users by timestamp, newest first
-    const users = _users.sort((a: Check, b: Check) => {
-      return new Date(b.FechaYHora).getTime() - new Date(a.FechaYHora).getTime();
+    const __checks: CompleteCheck[] = _checks.map((check: Check) => {
+      return {
+        ...check,
+        userChecked: _usuarios.find((u: Usuario) => u.id === check.userChecked)
+      } as CompleteCheck;
     });
 
-    setUsuarios(_usuarios);
-    setUsers(users);
-    setFilteredItems(users);
+    const checks = __checks.sort((a, b) => {
+      // Sort by date and time
+      return new Date(b.FechaYHora).getTime() - new Date(a.FechaYHora).getTime();
+    })
+
+    console.log("checks", checks);
+
+    setUsers(checks);
+    setFilteredItems(checks);
     setLoadingUsers(false);
   }
 
@@ -157,7 +165,6 @@ export default function Personal() {
               Recargar Checks
             </Button>
             <Button color="primary" endContent={<PlusIcon />} onPress={() => {
-              setUserToViewOrEdit(undefined);
               onOpenChange();
               setMode("create");
             }}>
@@ -231,7 +238,7 @@ export default function Personal() {
     vacation: "warning",
   };
 
-  const deleteUser = async (user: Check) => {
+  const deleteUser = async (user: CompleteCheck) => {
     toast.promise(
       new Promise(async (resolve) => {
         const _deleteUser = async () => {
@@ -266,27 +273,20 @@ export default function Personal() {
     // reloadUsers();
   }
 
-  const renderCell = React.useCallback((user: Check, columnKey: Column) => {
-    console.log(user);
-    console.log(columnKey);
-
-    const userToDisplay: Usuario | undefined = usuarios.find((u) => u.id === user.userChecked);
-
+  const renderCell = React.useCallback((user: CompleteCheck, columnKey: Column) => {
     switch (columnKey.uid) {
       case "id":
         return user.id;
 
       case "userChecked":
         return (
-          userToDisplay ? (
-            <User
-              avatarProps={{ radius: "lg", src: "" }}
-              description={userToDisplay.Apellidos}
-              name={userToDisplay.Nombre}
-            >
-              {userToDisplay.Nombre} + " " + {userToDisplay.Apellidos}
-            </User>
-          ) : "N/A"
+          <User
+            avatarProps={{ radius: "lg", src: "" }}
+            description={user.userChecked.Apellidos}
+            name={user.userChecked.Nombre}
+          >
+            {user.userChecked.Nombre} + " " + {user.userChecked.Apellidos}
+          </User>
         )
 
       case "movimiento":
@@ -341,7 +341,7 @@ export default function Personal() {
   return (
     <>
       <Toaster expand={true} />
-      <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="5xl" placement="center" scrollBehavior="outside" backdrop="blur">
+      {/* <Modal isOpen={isOpen} onOpenChange={onOpenChange} size="5xl" placement="center" scrollBehavior="outside" backdrop="blur">
         <ModalContent>
           {(onClose) => (
             <div>
@@ -358,7 +358,7 @@ export default function Personal() {
             </div>
           )}
         </ModalContent>
-      </Modal>
+      </Modal> */}
       <ItemsTable
         items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
         loadingContent={loadingUsers}

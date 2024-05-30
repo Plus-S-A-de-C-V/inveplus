@@ -20,6 +20,9 @@ export const siteConfig = {
     {
       label: "Personal",
       href: "/personal",
-    },
+    },{
+      label: "Check",
+      href: "/check",
+    }
   ],
 };

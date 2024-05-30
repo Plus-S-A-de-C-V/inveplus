@@ -1,7 +1,7 @@
 import { Supplier } from "@/lib/definitions";
 import { deleteSupplier } from "@/lib/db";
 
-export async function POST(
+export async function DELETE(
   req: Request,
   { params }: { params: { id: string } }
 ): Promise<Response> {

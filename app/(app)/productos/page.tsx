@@ -42,13 +42,15 @@ import {
     productColumns,
     ProductColumn,
     supplierColumns,
-    SupplierColumn
+    SupplierColumn,
 } from "@/lib/definitions";
 
 import { ItemsTable } from "@/components/table";
 import ProductForm from "@/components/ProductForm";
 
 import { Toaster, toast } from 'sonner';
+
+type CompleteProduct = Product & { Supplier: Supplier };
 
 export default function Inventario() {
     const [rowsPerPage, setRowsPerPage] = React.useState(5);
@@ -57,13 +59,16 @@ export default function Inventario() {
 
     const [filterValue, setFilterValue] = React.useState<string>("");
 
-    const [products, setProducts] = React.useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = React.useState<Product[]>([]);
-    const [productToViewOrEdit, setProductToViewOrEdit] = React.useState<Product | undefined>(undefined);
+    const [products, setProducts] = React.useState<CompleteProduct[]>([]);
+    const [filteredProducts, setFilteredProducts] = React.useState<CompleteProduct[]>([]);
+    const [productToViewOrEdit, setProductToViewOrEdit] = React.useState<CompleteProduct | undefined>(undefined);
     const [loadingProducts, setLoadingProducts] = React.useState(true);
 
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const [mode, setMode] = React.useState<"view" | "edit" | "create">("view");
+    const [requestRefresh, setRequestRefresh] = React.useState(false);
+
+    const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
 
 
     React.useEffect(() => {
@@ -78,22 +83,35 @@ export default function Inventario() {
         // TODO:! Implement
         setLoadingProducts(true);
 
-        const products = await fetch("/api/products",
-            {
-                cache: "reload",
-                method: "GET",
-            }
-        ).then((res) => res.json());
+        const products = await fetch("/api/products", {
+            method: "GET",
+        }).then((res) => res.json());
 
+        const suppliers = await fetch("/api/suppliers", {
+            method: "GET",
+        }).then((res) => res.json());
 
-        setProducts(products);
+        const completeProducts: CompleteProduct[] = products.map((product: Product) => {
+            const supplier = suppliers.find((s: Supplier) => s.SupplierID === product.SupplierID);
 
-        console.log("Products: ", products);
+            return {
+                ...product,
+                Supplier: supplier
+            } as CompleteProduct;
+        });
 
+        setProducts(completeProducts);
         setFilteredProducts(products);
-
+        setSuppliers(suppliers);
         setLoadingProducts(false);
     }
+
+    React.useEffect(() => {
+        if (requestRefresh) {
+            reloadItems();
+            setRequestRefresh(false);
+        }
+    }, [requestRefresh]);
 
     const onClear = React.useCallback(() => {
         setFilterValue("")
@@ -243,14 +261,27 @@ export default function Inventario() {
         // reloadUsers();
     }
 
-    const renderCell = React.useCallback((item: Product, column: ProductColumn) => {
+    const renderCell = React.useCallback((item: CompleteProduct, column: ProductColumn) => {
+
         switch (column.uid) {
             case "id":
                 return item.ProductID;
             case "name":
                 return item.ProductName;
-            case "supplier":
-                return item.SupplierID;
+            case "supplier": {
+                return (
+                    <User
+                        key={item.ProductID}
+                        avatarProps={{
+                            radius: "lg",
+                        }}
+                        description={item.Supplier.SupplierID}
+                        name={`${item.Supplier.SupplierName} - ${item.Supplier.ContactName}`}
+                    >
+                        {item.Supplier.SupplierName} - {item.Supplier.ContactName}
+                    </User>
+                )
+            }
             case "stock":
                 return item.QuantityInStock;
             case "minimo":
@@ -296,41 +327,6 @@ export default function Inventario() {
             default:
                 return "N/A";
         }
-        // if (selected === "productos") {
-        //     console.log("Product: ", item);
-        //     console.log("Column: ", column);
-        //     const product = item as Product;
-
-
-        //     }
-        // } else {
-        //     console.log("Supplier: ", item);
-        //     console.log("Column: ", column);
-        //     const supplier = item as Supplier;
-
-        //     switch (column.uid) {
-        //         case "id":
-        //             return supplier.SupplierID;
-        //         case "name":
-        //             return supplier.SupplierName;
-        //         case "contact":
-        //             return supplier.ContactName;
-        //         case "address":
-        //             return supplier.Address;
-        //         case "city":
-        //             return supplier.City;
-        //         case "postal":
-        //             return supplier.PostalCode;
-        //         case "country":
-        //             return supplier.Country;
-        //         case "phone":
-        //             return supplier.Phone;
-        //         case "mail":
-        //             return supplier.Mail;
-        //         default:
-        //             return "N/A";
-        //     }
-        // }
     }, []);
 
     return (
@@ -350,6 +346,7 @@ export default function Inventario() {
                                     onOpenChange={onOpenChange}
                                     mode={mode}
                                     product={productToViewOrEdit}
+                                    setRequestRefresh={setRequestRefresh}
                                 />
                             </ModalBody>
                         </div>

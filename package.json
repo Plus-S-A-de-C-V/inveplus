@@ -19,14 +19,18 @@
     "bcryptjs": "^2.4.3",
     "cf-bindings-proxy": "^0.7.1",
     "cloudflare": "^3.2.0",
+    "date-fns": "^3.6.0",
     "flatted": "^3.3.1",
     "next": "^14.2.3",
     "next-auth": "^5.0.0-beta.18",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-live-clock": "^6.1.20",
+    "react-router-dom": "^6.23.1",
     "sonner": "^1.4.41",
-    "ts-node": "^10.9.2"
+    "ts-node": "^10.9.2",
+    "zustand": "^4.5.2"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.24.6",

@@ -1,3 +1,5 @@
+"use server";
+
 const account_id = process.env.ACCOUNT_ID;
 const database_id = process.env.DATABASE_ID;
 const bearer_token = process.env.BEARER_TOKEN;
@@ -241,22 +243,28 @@ export async function updateUser(user: Usuario) {
     return null;
   }
 
-  // first update the user in the user table
-  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `UPDATE Usuario SET Nombre = "${user.Nombre}", Apellidos = "${user.Apellidos}", LINK_Foto = "${user.Foto}", Password = "${user.Password}" WHERE id = "${user.id}"`,
-  });
+  try {
+    // first update the user in the user table
+    await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+      sql: `UPDATE Usuario SET Nombre = "${user.Nombre}", Apellidos = "${user.Apellidos}", LINK_Foto = "${user.Foto}", Password = "${user.Password}" WHERE id = "${user.id}"`,
+    });
 
-  // then update the user in the InformacionMedica table
-  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `UPDATE InformacionMedica SET ClinicaAsignada = "${user.InformacionMedica?.ClinicaAsignada}", TipoDeSangre = "${user.InformacionMedica?.TipoDeSangre}" WHERE UsuarioId = "${user.id}"`,
-  });
+    // then update the user in the InformacionMedica table
+    await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+      sql: `UPDATE InformacionMedica SET ClinicaAsignada = "${user.InformacionMedica?.ClinicaAsignada}", TipoDeSangre = "${user.InformacionMedica?.TipoDeSangre}" WHERE UsuarioId = "${user.id}"`,
+    });
 
-  // then update the user in the InformacionPersonal table
-  await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
-    sql: `UPDATE InformacionPersonal SET FechaDeNacimiento = "${user.InformacionPersonal?.FechaDeNacimiento}", CURP = "${user.InformacionPersonal?.CURP}", RFC = "${user.InformacionPersonal?.RFC}", NSS = "${user.InformacionPersonal?.NSS}",ClaveLector = "${user.InformacionPersonal?.ClaveLector}", Direccion = "${user.InformacionPersonal?.Direccion}", NumeroTelefonico = "${user.InformacionPersonal?.NumeroTelefonico}", correoElectronico = "${user.InformacionPersonal?.correoElectronico}", LINK_INE = "${user.DocumentosPersonales?.INE}", LINK_ConstanciaDeSituacionFiscal = "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", LINK_AsignacionDeNSS = "${user.DocumentosPersonales?.AsignacionDeNSS}", LINK_ComprobanteDeDominio = "${user.DocumentosPersonales?.ComprobanteDeDomicilio}", LINK_CURP = "${user.DocumentosPersonales?.CURP}" WHERE UsuarioId = "${user.id}"`,
-  });
+    // then update the user in the InformacionPersonal table
+    await cloudflare.d1.database.query(ACCOUNT_ID, DATABASE_ID, {
+      sql: `UPDATE InformacionPersonal SET FechaDeNacimiento = "${user.InformacionPersonal?.FechaDeNacimiento}", CURP = "${user.InformacionPersonal?.CURP}", RFC = "${user.InformacionPersonal?.RFC}", NSS = "${user.InformacionPersonal?.NSS}",ClaveLector = "${user.InformacionPersonal?.ClaveLector}", Direccion = "${user.InformacionPersonal?.Direccion}", NumeroTelefonico = "${user.InformacionPersonal?.NumeroTelefonico}", correoElectronico = "${user.InformacionPersonal?.correoElectronico}", LINK_INE = "${user.DocumentosPersonales?.INE}", LINK_ConstanciaDeSituacionFiscal = "${user.DocumentosPersonales?.ConstanciaDeSituacionFiscal}", LINK_AsignacionDeNSS = "${user.DocumentosPersonales?.AsignacionDeNSS}", LINK_ComprobanteDeDominio = "${user.DocumentosPersonales?.ComprobanteDeDomicilio}", LINK_CURP = "${user.DocumentosPersonales?.CURP}" WHERE UsuarioId = "${user.id}"`,
+    });
 
-  return user;
+    console.log("User updated: ", user);
+    return user;
+  } catch (e) {
+    console.log("Error updating user: ", e);
+    return null;
+  }
 }
 
 export async function deleteUser(id: string) {
@@ -575,9 +583,8 @@ export async function getObject(objectName: string): Promise<Buffer> {
 
   // Convert the stream to a Buffer
   const buffer = await new Promise<Buffer>((resolve, reject) => {
-    if(!object) return null;
-    if(!object.Body) return null;
-
+    if (!object) return null;
+    if (!object.Body) return null;
 
     const chunks: Buffer[] = [];
     object.Body.on("data", (chunk: Buffer) => chunks.push(chunk));
@@ -595,25 +602,33 @@ export async function editObject(objectName: string, newObjectContent: Buffer) {
     Body: newObjectContent,
   };
   const command = new PutObjectCommand(input);
-  const object = await s3.send(command);
-  return object;
-  // const res = await s3
-  //   .putObject({
-  //     Bucket: "inveplus",
-  //     Key: objectName,
-  //     Body: newObjectContent,
-  //   })
-  //   .promise();
-  // return res;
+  try {
+    const object = await s3.send(command);
+    return object;
+  } catch (e) {
+    console.log(e);
+    return null;
+  }
 }
 
 export async function deleteObject(objectName: string) {
+  if (!objectName) return null;
+
   const input = {
     Bucket: "inveplus",
     Key: objectName,
   };
   const command = new DeleteObjectCommand(input);
-  const object = await s3.send(command);
+  console.log("Deleting object: ", objectName);
+  try {
+    const object = await s3.send(command);
+    console.log("Object deleted: ", objectName);
+    return object;
+  } catch (e) {
+    console.log(e);
+    console.log("Failed to delete object: ", objectName);
+    return null;
+  }
   // const res = await s3.deleteObject({ Bucket: "inveplus", Key: objectName });
   // return res;
 }

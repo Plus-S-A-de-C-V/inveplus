@@ -56,7 +56,6 @@ export default function ChecksForm({ isOpen, onOpenChange, mode, check }: formPr
 
         const suppliers = await fetch("/api/users",
             {
-                cache: "reload",
                 method: "GET",
             }
         ).then((res) => res.json());

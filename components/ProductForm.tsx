@@ -20,6 +20,8 @@ import {
     ModalFooter,
     useDisclosure,
     User,
+    Autocomplete,
+    AutocompleteItem,
     SelectedItems
 } from "@nextui-org/react";
 
@@ -34,14 +36,16 @@ interface formProps {
     onOpenChange: (isOpen: boolean) => void;
     mode: "create" | "edit" | "view";
     product?: Product;
+    setRequestRefresh: (value: boolean) => void;
 }
 
-export default function ProductForm({ isOpen, onOpenChange, mode, product }: formProps) {
+export default function ProductForm({ isOpen, onOpenChange, mode, product, setRequestRefresh }: formProps) {
     const { pending } = useFormStatus()
     const [loading, setLoading] = React.useState(false);
 
     const [suppliers, setSuppliers] = React.useState<Supplier[]>([]);
     const [loadingSuppliers, setLoadingSuppliers] = React.useState<boolean>(false);
+    const [sending, setSending] = React.useState<boolean>(false);
     // const [isOpen, setIsOpen] = React.useState(false);
 
 
@@ -59,7 +63,6 @@ export default function ProductForm({ isOpen, onOpenChange, mode, product }: for
 
         const suppliers = await fetch("/api/suppliers",
             {
-                cache: "reload",
                 method: "GET",
             }
         ).then((res) => res.json());
@@ -71,6 +74,7 @@ export default function ProductForm({ isOpen, onOpenChange, mode, product }: for
 
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+        setSending(true);
         setLoading(true);
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
@@ -80,20 +84,26 @@ export default function ProductForm({ isOpen, onOpenChange, mode, product }: for
                 body: formData,
             });
             if (result.ok) {
+                setSending(false);
+                setRequestRefresh(true);
                 onOpenChange(false)
             }
 
         } else if (mode === "edit") {
-            const result = await fetch("/api/products/edit" + product?.ProductID, {
+            const result = await fetch("/api/products/edit/" + product?.ProductID, {
                 method: "POST",
                 body: formData,
             });
             if (result.ok) {
+                setSending(false);
+                setRequestRefresh(true);
                 onOpenChange(false)
             }
         } else {
+            setSending(false);
             onOpenChange(false)
         }
+        setSending(false);
     }
 
     return (
@@ -120,7 +130,7 @@ export default function ProductForm({ isOpen, onOpenChange, mode, product }: for
                     isReadOnly={mode === "view"}
                     disabled={mode === "view"}
                 /> */}
-                <Select
+                {/* <Select
                     className="w-full"
                     isLoading={loadingSuppliers && mode !== "view"}
                     items={suppliers}
@@ -149,7 +159,31 @@ export default function ProductForm({ isOpen, onOpenChange, mode, product }: for
                             </div>
                         </SelectItem>
                     )}
-                </Select>
+                </Select> */}
+                <Autocomplete
+                    label="Selecciona un Proveedor"
+                    placeholder="Selecciona un Proveedor"
+                    name="SupplierID"
+                    items={suppliers}
+                    isLoading={loadingSuppliers && mode !== "view"}
+                    labelPlacement="inside"
+                    value={product?.SupplierID}
+                >
+                    {(item) => (
+                        <AutocompleteItem key={item.ContactName} className="capitalize w-full" textValue={item.SupplierID}>
+                            <User
+                                key={item.SupplierID}
+                                avatarProps={{
+                                    radius: "lg",
+                                }}
+                                description={item.SupplierID}
+                                name={`${item.SupplierName} - ${item.ContactName}`}
+                            >
+                                {item.SupplierName} - {item.ContactName}
+                            </User>
+                        </AutocompleteItem>
+                    )}
+                </Autocomplete>
                 <Input
                     name="QuantityInStock"
                     label="Cantidad en Stock"

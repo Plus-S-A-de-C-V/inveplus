@@ -32,9 +32,10 @@ interface formProps {
     onOpenChange: (isOpen: boolean) => void;
     mode: "create" | "edit" | "view";
     supplier?: Supplier;
+    setRequestRefresh: (value: boolean) => void;
 }
 
-export default function SupplierForm({ isOpen, onOpenChange, mode, supplier }: formProps) {
+export default function SupplierForm({ isOpen, onOpenChange, mode, supplier, setRequestRefresh }: formProps) {
     const { pending } = useFormStatus()
     const [loading, setLoading] = React.useState(false);
 
@@ -47,16 +48,18 @@ export default function SupplierForm({ isOpen, onOpenChange, mode, supplier }: f
                 method: "POST",
                 body: formData,
             });
-            if (result.ok) {
+            if (result.status === 200) {
+                await setRequestRefresh(true);
                 onOpenChange(false)
             }
 
         } else if (mode === "edit") {
-            const result = await fetch("/api/suppliers/edit", {
+            const result = await fetch("/api/suppliers/edit/" + supplier?.SupplierID, {
                 method: "POST",
                 body: formData,
             });
-            if (result.ok) {
+            if (result.status === 201) {
+                setRequestRefresh(true);
                 onOpenChange(false)
             }
         } else {

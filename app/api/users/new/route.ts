@@ -7,6 +7,19 @@ import {
 import { addUser, uploadObject } from "@/lib/db";
 import { nanoid } from "nanoid";
 
+const uploadFile = async (file: File) => {
+  // If no file is provided, return an empty string
+  if (!file) return "";
+  const url = `[${nanoid(10)}]${file.name}`;
+  const buffer = Buffer.from(await file.arrayBuffer());
+  const result = await uploadObject(url, buffer);
+  if (!result) {
+    return "";
+  }
+
+  return url;
+};
+
 export async function POST(req: Request) {
   // The user object is inside the request body
   const data = await req.formData();
@@ -28,68 +41,21 @@ export async function POST(req: Request) {
     RFC: data.get("rfc")?.toString() || "",
   };
 
-  const __profilePic = data.get("profilePic");
-  const __fileINE = data.get("fileINE");
-  const __fileConstancia = data.get("fileConstancia");
-  const __fileNSS = data.get("fileAsignacion");
-  const __fileCURP = data.get("fileCURP");
-  const __fileComprobante = data.get("comprobanteDomicilio");
-
-  // If any of the files is missing, return an error
-  if (
-    !__profilePic ||
-    !__fileINE ||
-    !__fileConstancia ||
-    !__fileNSS ||
-    !__fileCURP ||
-    !__fileComprobante
-  ) {
-    console.log("Missing files");
-    console.log(__profilePic);
-    console.log(__fileINE);
-    console.log(__fileConstancia);
-    console.log(__fileNSS);
-    console.log(__fileCURP);
-    console.log(__fileComprobante);
-    console.log(data);
-    return new Response("Missing files", {
-      status: 400,
-    });
-  }
-
-  const _profilePic = __profilePic as File;
-  const _fileINE = __fileINE as File;
-  const _fileConstancia = __fileConstancia as File;
-  const _fileNSS = __fileNSS as File;
-  const _fileCURP = __fileCURP as File;
-  const _fileComprobante = __fileComprobante as File;
-
-  const profilePic = `[${nanoid(10)}]${_profilePic.name}`;
-  const fileINE = `[${nanoid(10)}]${_fileINE.name}`;
-  const fileConstancia = `[${nanoid(10)}]${_fileConstancia.name}`;
-  const fileNSS = `[${nanoid(10)}]${_fileNSS.name}`;
-  const fileCURP = `[${nanoid(10)}]${_fileCURP.name}`;
-  const fileComprobante = `[${nanoid(10)}]${_fileComprobante.name}`;
-
-  const profilePicBuffer = Buffer.from(await _profilePic.arrayBuffer());
-  const fileINEBuffer = Buffer.from(await _fileINE.arrayBuffer());
-  const fileConstanciaBuffer = Buffer.from(await _fileConstancia.arrayBuffer());
-  const fileNSSBuffer = Buffer.from(await _fileNSS.arrayBuffer());
-  const fileCURPBuffer = Buffer.from(await _fileCURP.arrayBuffer());
-  const fileComprobanteBuffer = Buffer.from(
-    await _fileComprobante.arrayBuffer()
-  );
-
-  // TODO: Add error handling
-  Promise.all([
-    uploadObject(profilePic, profilePicBuffer),
-    uploadObject(fileINE, fileINEBuffer),
-    uploadObject(fileConstancia, fileConstanciaBuffer),
-    uploadObject(fileNSS, fileNSSBuffer),
-    uploadObject(fileCURP, fileCURPBuffer),
-    uploadObject(fileComprobante, fileComprobanteBuffer),
+  const [
+    profilePic,
+    fileINE,
+    fileConstancia,
+    fileNSS,
+    fileCURP,
+    fileComprobante,
+  ] = await Promise.all([
+    uploadFile(data.get("profilePic") as File),
+    uploadFile(data.get("fileINE") as File),
+    uploadFile(data.get("fileConstancia") as File),
+    uploadFile(data.get("fileAsignacion") as File),
+    uploadFile(data.get("fileCURP") as File),
+    uploadFile(data.get("comprobanteDomicilio") as File),
   ]);
-
   let DocumentosPersonales: DocumentosPersonales = {
     INE: fileINE,
     ConstanciaDeSituacionFiscal: fileConstancia,

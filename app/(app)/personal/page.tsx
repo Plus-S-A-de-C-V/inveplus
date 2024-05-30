@@ -57,11 +57,13 @@ export default function Personal() {
 
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
 
+  const [requestRefresh, setRequestRefresh] = React.useState(false);
+
   React.useEffect(() => {
     // Get users from api
     const fetchUsers = async () => {
       const users = await fetch("/api/users", {
-        cache: "reload",
+        cache: "no-cache",
       }).then((res) => res.json());
       setUsers(users);
       setFilteredItems(users);
@@ -71,13 +73,25 @@ export default function Personal() {
     fetchUsers();
   }, []);
 
+
   const reloadUsers = async () => {
     setLoadingUsers(true);
-    const users = await fetch("/api/users").then((res) => res.json());
+    setUsers([]);
+    setPage(1);
+    const users = await fetch("/api/users", {
+      cache: "reload",
+    }).then((res) => res.json());
     setUsers(users);
     setFilteredItems(users);
     setLoadingUsers(false);
   }
+
+  React.useEffect(() => {
+    if (requestRefresh) {
+      reloadUsers();
+      setRequestRefresh(false);
+    }
+  }, [requestRefresh]);
 
   const onClear = React.useCallback(() => {
     setFilterValue("")
@@ -241,6 +255,7 @@ export default function Personal() {
             const newUsers = users.filter((u) => u.id !== user.id);
             setUsers(newUsers);
             setFilteredItems(newUsers);
+            setRequestRefresh(true);
             resolve(true);
           } else {
             reject(false);
@@ -368,20 +383,28 @@ export default function Personal() {
                 }
               </ModalHeader>
               <ModalBody>
-                <PersonForm isOpen={isOpen} onOpenChange={onOpenChange} user={userToViewOrEdit} mode={mode} />
+                <PersonForm isOpen={isOpen} onOpenChange={onOpenChange} user={userToViewOrEdit} mode={mode} setRequestRefresh={setRequestRefresh} />
               </ModalBody>
             </div>
           )}
         </ModalContent>
       </Modal>
-      <ItemsTable
-        items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
-        loadingContent={loadingUsers}
-        topContent={topContent}
-        bottomContent={bottomContent}
-        renderCell={renderCell}
-        columns={columns}
-      />
+      {
+        loadingUsers ? (
+          <div className="flex justify-center items-center h-[50vh]">
+            <Spinner label="Cargando usuarios" />
+          </div>
+        ) : (
+          <ItemsTable
+            items={filteredItems.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+            loadingContent={loadingUsers}
+            topContent={topContent}
+            bottomContent={bottomContent}
+            renderCell={renderCell}
+            columns={columns}
+          />
+        )
+      }
     </>
   );
 

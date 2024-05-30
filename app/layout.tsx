@@ -28,7 +28,21 @@ export default function RootLayout({
 }) {
   return (
     <>
-      {children}
+      <html lang="en" suppressHydrationWarning>
+        <head />
+        <body
+          className={clsx(
+            "min-h-screen bg-background font-sans antialiased",
+            fontSans.variable
+          )}
+        >
+          <Providers themeProps={{ attribute: "class", defaultTheme: "dark", children: "" }}>
+            <div className="relative flex flex-col h-screen">
+              {children}
+            </div>
+          </Providers>
+        </body>
+      </html>
     </>
   );
 }

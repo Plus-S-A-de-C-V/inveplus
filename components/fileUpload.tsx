@@ -26,17 +26,40 @@ export default function FileInput({
   }, []);
 
   const downlaodFile = async () => {
-    const file = await fetch("/api/objects/" + fileUrl)
-      .then(async (res) => res.blob())
-      .then(async (_blob) => {
-        // console.log("Downloading: ", fileUrl.slice(12))
-        const filenameWithExtension = fileUrl.slice(12);
-        const file = new File([_blob], filenameWithExtension, { type: "application/pdf" });
+    // const file = await fetch("/api/objects/" + fileUrl)
+    //   .then(async (res) => res.blob())
+    //   .catch(async (err) => {
+    //     console.error("Error downloading file: ", err);
+    //     setFileReady(false);
+    //     return null;
+    //   })
+    //   .then(async (_blob) => {
+    //     const filenameWithExtension = fileUrl.slice(12);
+    //     const file = new File([_blob], filenameWithExtension, { type: "application/pdf" });
 
-        return file;
-      });
+    //     return file;
+    //   }).catch(async (err) => {
+    //     console.error("Error creating file: ", err);
+    //     setFileReady(false);
+    //     return null;
+    //   });
 
-    // if (!file) return;
+    const _file = await fetch("/api/objects/" + fileUrl)
+    if(_file.status !== 200) {
+      setFileReady(false);
+      setFile(null);
+      return;
+    }
+
+    const blob = await _file.blob();
+    const filenameWithExtension = fileUrl.slice(12);
+    const file = new File([blob], filenameWithExtension, { type: "application/pdf" });
+
+    if (!file) {
+      setFileReady(false);
+      setFile(null);
+      return;
+    }
 
     setFile(file);
     setFileReady(true);
