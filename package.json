@@ -21,7 +21,7 @@
     "cloudflare": "^3.2.0",
     "date-fns": "^3.6.0",
     "flatted": "^3.3.1",
-    "next": "^14.2.3",
+    "next": "^14.2.32",
     "next-auth": "^5.0.0-beta.18",
     "next-themes": "^0.3.0",
     "react": "^18.3.1",
